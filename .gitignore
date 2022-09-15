@@ -1,0 +1,13 @@
+bin/
+lib/
+__pycache__/
+.secrets
+*.img
+compressed-images/*
+*.tgz
+*.tgz.*
+nginx/build
+share/
+images/*
+*.png
+config.json
