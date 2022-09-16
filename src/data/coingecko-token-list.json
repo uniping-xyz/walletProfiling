@@ -6056,14 +6056,6 @@
         "binance_smart_chain": null
     },
     {
-        "id": "arya-finance",
-        "symbol": "arya",
-        "name": "Arya Finance",
-        "ethereum": null,
-        "polygon": null,
-        "binance_smart_chain": "0xf0b416b746f90c42604b7ebe63eba8cd5f017512"
-    },
-    {
         "id": "ascentpad",
         "symbol": "asp",
         "name": "AscentPad",
@@ -9048,14 +9040,6 @@
         "binance_smart_chain": null
     },
     {
-        "id": "betdao",
-        "symbol": "bdao",
-        "name": "BetDao",
-        "ethereum": "0x05d8c63437907daa0982aa2171096306ccfcf132",
-        "polygon": null,
-        "binance_smart_chain": null
-    },
-    {
         "id": "betero",
         "symbol": "bte",
         "name": "Betero",
@@ -10526,6 +10510,14 @@
         "ethereum": "0x1b06b43f3b0bbad73784d858c782e029f3f5af14",
         "polygon": null,
         "binance_smart_chain": null
+    },
+    {
+        "id": "bitzen",
+        "symbol": "bzen",
+        "name": "Bitzen",
+        "ethereum": null,
+        "polygon": null,
+        "binance_smart_chain": "0xdacc0417add48b63cbefb77efbe4a3801aad51ba"
     },
     {
         "id": "bitzipp",
@@ -14734,14 +14726,6 @@
         "ethereum": null,
         "polygon": null,
         "binance_smart_chain": "0x518388eba644e6dc68adc9a9d480af46a0742a56"
-    },
-    {
-        "id": "chicken-nugget-coin",
-        "symbol": "nugget",
-        "name": "Chicken Nugget Coin",
-        "ethereum": null,
-        "polygon": null,
-        "binance_smart_chain": "0x9519e42a2a150be93b2cd57b37f8724b62aa1bb9"
     },
     {
         "id": "chi-coin",
@@ -21080,6 +21064,14 @@
         "binance_smart_chain": "0xee8feaee52ce378ba356a5772bba29d08af25cdb"
     },
     {
+        "id": "diamond-launch",
+        "symbol": "dlc",
+        "name": "Diamond Launch",
+        "ethereum": null,
+        "polygon": null,
+        "binance_smart_chain": "0xde83180dd1166d4f8e5c2b7de14a2163b1bb4a87"
+    },
+    {
         "id": "diamond-platform-token",
         "symbol": "dpt",
         "name": "Diamond Platform",
@@ -21606,14 +21598,6 @@
         "ethereum": null,
         "polygon": null,
         "binance_smart_chain": "0x4f857cfe2cd50c1a94ec88232ee0f5e3fd5db1ff"
-    },
-    {
-        "id": "dnft-protocol",
-        "symbol": "dnf",
-        "name": "DNFT Protocol",
-        "ethereum": "0x7c8911c69257c074593fd9efdc431f200be27107",
-        "polygon": null,
-        "binance_smart_chain": null
     },
     {
         "id": "doaibu",
@@ -23654,6 +23638,14 @@
         "ethereum": "0xc741f06082aa47f93729070ad0dd95e223bda091",
         "polygon": null,
         "binance_smart_chain": "0x887d9c01fff04022da9c6d64a65a481a9e5d1fca"
+    },
+    {
+        "id": "edufex",
+        "symbol": "edux",
+        "name": "Edufex",
+        "ethereum": null,
+        "polygon": null,
+        "binance_smart_chain": "0x2b1b730c997d81db2e792b47d0bc42a64ee6aa55"
     },
     {
         "id": "efin-decentralized",
@@ -32584,6 +32576,14 @@
         "binance_smart_chain": null
     },
     {
+        "id": "historydao",
+        "symbol": "hao",
+        "name": "HistoryDAO",
+        "ethereum": "0x3c4008eca800ec1283e4cf500e68d06bfabc00a8",
+        "polygon": null,
+        "binance_smart_chain": null
+    },
+    {
         "id": "hitbtc-token",
         "symbol": "hit",
         "name": "HitBTC",
@@ -33134,6 +33134,14 @@
         "ethereum": "0x56bd0c900acaf04125ee26f546d6214634fd970f",
         "polygon": null,
         "binance_smart_chain": null
+    },
+    {
+        "id": "hubgame",
+        "symbol": "hub",
+        "name": "HubGame",
+        "ethereum": null,
+        "polygon": null,
+        "binance_smart_chain": "0x46bcbbb0d888df90eda86c9ca159c7727a8731d5"
     },
     {
         "id": "hub-token",
@@ -35712,36 +35720,12 @@
         "binance_smart_chain": null
     },
     {
-        "id": "jarvis-synthetic-australian-dollar",
-        "symbol": "jaud",
-        "name": "Jarvis Synthetic Australian Dollar",
-        "ethereum": null,
-        "polygon": "0xcb7f1ef7246d1497b985f7fc45a1a31f04346133",
-        "binance_smart_chain": null
-    },
-    {
         "id": "jarvis-synthetic-british-pound",
         "symbol": "jgbp",
         "name": "Jarvis Synthetic British Pound",
         "ethereum": "0x7409856cae628f5d578b285b45669b36e7005283",
         "polygon": "0x767058f11800fba6a682e73a6e79ec5eb74fac8c",
         "binance_smart_chain": "0x048e9b1ddf9ebbb224812372280e94ccac443f9e"
-    },
-    {
-        "id": "jarvis-synthetic-canadian-dollar",
-        "symbol": "jcad",
-        "name": "Jarvis Synthetic Canadian Dollar",
-        "ethereum": null,
-        "polygon": "0x8ca194a3b22077359b5732de53373d4afc11dee3",
-        "binance_smart_chain": null
-    },
-    {
-        "id": "jarvis-synthetic-chinese-yuan",
-        "symbol": "jcny",
-        "name": "Jarvis Synthetic Chinese Yuan",
-        "ethereum": null,
-        "polygon": "0x84526c812d8f6c4fd6c1a5b68713aff50733e772",
-        "binance_smart_chain": null
     },
     {
         "id": "jarvis-synthetic-euro",
@@ -35757,22 +35741,6 @@
         "name": "Jarvis Synthetic Japanese Yen",
         "ethereum": null,
         "polygon": "0x8343091f2499fd4b6174a46d067a920a3b851ff9",
-        "binance_smart_chain": null
-    },
-    {
-        "id": "jarvis-synthetic-singapore-dollar",
-        "symbol": "jsgd",
-        "name": "Jarvis Synthetic Singapore Dollar",
-        "ethereum": null,
-        "polygon": "0xa926db7a4cc0cb1736d5ac60495ca8eb7214b503",
-        "binance_smart_chain": null
-    },
-    {
-        "id": "jarvis-synthetic-swedish-krona",
-        "symbol": "jsek",
-        "name": "Jarvis Synthetic Swedish Krona",
-        "ethereum": null,
-        "polygon": "0x197e5d6ccff265ac3e303a34db360ee1429f5d1a",
         "binance_smart_chain": null
     },
     {
@@ -36140,6 +36108,14 @@
         "symbol": "jpg",
         "name": "JPG NFT Index",
         "ethereum": "0x02e7ac540409d32c90bfb51114003a9e1ff0249c",
+        "polygon": null,
+        "binance_smart_chain": null
+    },
+    {
+        "id": "jpgoldcoin",
+        "symbol": "jpgc",
+        "name": "JPGoldCoin",
+        "ethereum": "0x5891599664ed15c6e88041b4f5bc08594f026f0e",
         "polygon": null,
         "binance_smart_chain": null
     },
@@ -39448,12 +39424,12 @@
         "binance_smart_chain": "0xf20c8afd1391c41a4185bb7c2d038de7097ba1b9"
     },
     {
-        "id": "little-rabbit",
+        "id": "little-rabbit-v2",
         "symbol": "ltrbt",
-        "name": "Little Rabbit",
+        "name": "Little Rabbit V2",
         "ethereum": null,
         "polygon": null,
-        "binance_smart_chain": "0x17d749d3e2ac204a07e19d8096d9a05c423ea3af"
+        "binance_smart_chain": "0x6c46422a0f7dbbad9bec3bbbc1189bfaf9794b05"
     },
     {
         "id": "littlesesame",
@@ -44360,6 +44336,14 @@
         "binance_smart_chain": null
     },
     {
+        "id": "minebase",
+        "symbol": "mbase",
+        "name": "Minebase",
+        "ethereum": "0xba3e5f8b4200a5eb856ff2c3e001ab29444491aa",
+        "polygon": null,
+        "binance_smart_chain": null
+    },
+    {
         "id": "minecrypto",
         "symbol": "mcr",
         "name": "MineCrypto",
@@ -44440,14 +44424,6 @@
         "binance_smart_chain": "0xba07eed3d09055d60caef2bdfca1c05792f2dfad"
     },
     {
-        "id": "miniflokiada",
-        "symbol": "mflokiada",
-        "name": "MiniFlokiADA",
-        "ethereum": null,
-        "polygon": null,
-        "binance_smart_chain": "0x48cbc7f87c657fea3b297f658a5133a5deef9b04"
-    },
-    {
         "id": "minifootball",
         "symbol": "minifootball",
         "name": "Minifootball",
@@ -44502,14 +44478,6 @@
         "ethereum": null,
         "polygon": null,
         "binance_smart_chain": "0xd506ee6a2bb483a953eb311e9b7e5719211702d3"
-    },
-    {
-        "id": "mini-tiger",
-        "symbol": "minitiger",
-        "name": "Mini Tiger",
-        "ethereum": null,
-        "polygon": null,
-        "binance_smart_chain": "0x2e10abc27d4878fa43ee97e600fbe41ce2d046dc"
     },
     {
         "id": "minix",
@@ -44778,7 +44746,7 @@
     {
         "id": "mmg-token",
         "symbol": "mmg",
-        "name": "MMG Token",
+        "name": "Mad Monkey Guild",
         "ethereum": null,
         "polygon": null,
         "binance_smart_chain": "0xf018aea0a08a5d88674f0837bdac27ab89824dee"
@@ -60280,6 +60248,14 @@
         "binance_smart_chain": "0x0fcc11f873360450a1afd8cb7cfe0a9d787cc25e"
     },
     {
+        "id": "shopayment",
+        "symbol": "spay",
+        "name": "Shopayment",
+        "ethereum": null,
+        "polygon": null,
+        "binance_smart_chain": "0x9c1ae9c1772a04a2e491cfe8c84125df9dc537e5"
+    },
+    {
         "id": "shopnext",
         "symbol": "next",
         "name": "ShopNEXT",
@@ -62118,14 +62094,6 @@
         "ethereum": null,
         "polygon": null,
         "binance_smart_chain": "0x833fbcd654ed2f3a36059102b24f50c58bb21c5a"
-    },
-    {
-        "id": "spectra",
-        "symbol": "spc",
-        "name": "Spectra",
-        "ethereum": null,
-        "polygon": null,
-        "binance_smart_chain": "0xa2f017966d967ec697c7a20cf9d0b43cb8d4ff1d"
     },
     {
         "id": "spectre-dividend-token",
@@ -64080,6 +64048,14 @@
         "binance_smart_chain": "0x62891201468a517eeec00fe72f33595a3f9047ee"
     },
     {
+        "id": "supreme-finance-hypes",
+        "symbol": "hypes",
+        "name": "Supreme Finance HYPES",
+        "ethereum": null,
+        "polygon": null,
+        "binance_smart_chain": "0xe8e0d396f0881c0fab9319e441223f9780b8305c"
+    },
+    {
         "id": "suretly",
         "symbol": "sur",
         "name": "Suretly",
@@ -65220,6 +65196,14 @@
         "symbol": "tena",
         "name": "TENA",
         "ethereum": "0xe14a603f7c77d4101a87859b8736a04cfd85c688",
+        "polygon": null,
+        "binance_smart_chain": null
+    },
+    {
+        "id": "ten-best-coins",
+        "symbol": "tbc",
+        "name": "Ten Best Coins",
+        "ethereum": "0x03042ae6fcfd53e3a0baa1fab5ce70e0cb74e6fb",
         "polygon": null,
         "binance_smart_chain": null
     },
@@ -70408,14 +70392,6 @@
         "binance_smart_chain": "0xb56c64282230fae000e887d2a1e50a7881ce0e66"
     },
     {
-        "id": "vibranium",
-        "symbol": "vbn",
-        "name": "Vibranium",
-        "ethereum": null,
-        "polygon": null,
-        "binance_smart_chain": "0x4b41ca61f5fbe12ddba38bc2d8bacc5f68fd491f"
-    },
-    {
         "id": "vicat",
         "symbol": "vicat",
         "name": "ViCat",
@@ -75038,6 +75014,14 @@
         "ethereum": "0x0ec78ed49c2d27b315d462d43b5bab94d2c79bf8",
         "polygon": null,
         "binance_smart_chain": null
+    },
+    {
+        "id": "zerox",
+        "symbol": "zerox",
+        "name": "ZeroX",
+        "ethereum": null,
+        "polygon": null,
+        "binance_smart_chain": "0xe097454853f4df69dbfcf6aeb8501a772f0d9218"
     },
     {
         "id": "zeus10000",

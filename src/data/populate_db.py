@@ -26,12 +26,15 @@ result = cg.get_coins_list(include_platform=True)
 tokens_list = []
 token_collection.drop()
 
+get_platform = lambda platforms, name :  platforms.get(name) if  (platforms.get(name) and platforms.get(name) != '') else None 
+
 for e in result:
     temp = e.copy()
     platforms = temp.pop("platforms")
-    _platforms = { "ethereum":  platforms.get("ethereum"),
-                    "polygon": platforms.get("polygon-pos"),
-                    "binance_smart_chain":  platforms.get("binance-smart-chain") }
+    
+    _platforms = { "ethereum":  get_platform( platforms, "ethereum"),
+                    "polygon":  get_platform( platforms, "polygon-pos"),
+                    "binance_smart_chain": get_platform( platforms, "binance-smart-chain") }
     if list(_platforms.values()).count(None) == len(_platforms):
         pass
     else:

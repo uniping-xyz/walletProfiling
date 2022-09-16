@@ -57,6 +57,10 @@ async def db_connection():
 async def after_server_start(app, loop):
     load_config()
     await db_connection()
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = app.config[ENVIRONMENT]["GOOGLE_CREDS_JSON_PATH"]
+    app.config.bq_polygon_table = app.config[ENVIRONMENT]["BQ_POLYGON_TABLE_NAME"]
+    app.config.bq_eth_table = app.config[ENVIRONMENT]["BQ_ETH_TABLE_NAME"]
+
     return
 
 @app.listener('after_server_stop')
