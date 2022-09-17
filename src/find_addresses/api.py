@@ -91,7 +91,7 @@ async def search_token(request):
     if not request.args.get("chain") or  request.args.get("chain") not in ["ethereum", "polygon"]:
         raise CustomError("Chain is required and should be either ethereum or polygon")
 
-    query = {request.args.get("chain"): {"$exists": True},
+    query = {request.args.get("chain"): {"$ne": None},
                             "tokens": {"$in": [request.args.get("token_name").lower()] }}
     print (query)
 
