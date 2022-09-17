@@ -7,6 +7,7 @@ from utils.utils import Response
 from utils.authorization import authorized, authorized_optional
 from utils.errors import CustomError
 import datetime
+import json
 from google.cloud import bigquery
 
 FIND_ADDRESSES_BP = Blueprint("channels", url_prefix='/find_address', version=1)
@@ -114,8 +115,6 @@ async def token_data(request):
     if type(request.args.getlist("token_addresses")) != list:
         raise CustomError("token_addresses is required and must be List")
 
-
-
     if not request.args.get("chain") or  request.args.get("chain") not in ["ethereum", "polygon"]:
         raise CustomError("Chain is required and should be either ethereum or polygon")
 
@@ -135,9 +134,9 @@ async def token_data(request):
     for (index, token_address) in enumerate(request.args.getlist("token_addresses")):
         _token_address = token_address.lower()
         if index == 0:
-            and_statement += f'WHERE token_address="{_token_address}" '
+            and_statement += f"WHERE token_address='{_token_address}' "
         else:
-            and_statement += f'AND token_address="{_token_address}" '
+            and_statement += f"AND token_address='{_token_address}' "
 
     query += and_statement
     if request.args.get("last_active"):
@@ -159,11 +158,31 @@ async def token_data(request):
     # """
 
     query += " ORDER BY last_transacted"
-    print (str(query))
+    
+    # _query = json.dumps(query)
+    
     client = bigquery.Client()
-    results = client.query(str(query))
+    results = client.query(query)
+    result = []
+    for row in results.result():
+        if request.args.get("chain") ==  "ethereum":
+            document = await request.app.config.TOKENS.find_one({"ethereum": row['token_address']})
+        else:
+            document = await request.app.config.TOKENS.find_one({"polygon": row['token_address']})
+        if document:
+            name = document.get("name")
+            symbol = document.get("symbol")
+        else:
+            name = row["name"]
+            symbol = row["symbol"]
+        result.append({"token_address": row['token_address'],
+                "wallet_address": row['wallet_address'],
+                "last_transacted": row['last_transacted'].strftime("%s"),
+                "name": name,
+                "symbol": symbol
+        })
 
-    return Response.success_response(data=results)
+    return Response.success_response(data=result)
 
 
 @FIND_ADDRESSES_BP.get('wallet_data')
@@ -195,6 +214,5 @@ async def token_data(request):
     client = bigquery.Client()
     print (query)
 
-
-
     return Response.success_response(data=query)
+
