@@ -105,11 +105,13 @@ async def search_token(request):
 
 
 """
-   SELECT * FROM `pingboxproduction.Address.eth_token_interaction_partitioned` 
-WHERE last_transacted BETWEEN "2022-09-1" and "2022-09-15"
-and token_address = "0x0000000000004946c0e9f43f4dee607b0ef1fa1c"
-ORDER BY ABS(balance) DESC
-limit 50
+    SELECT wallet_address, Max(last_transacted) as last_transacted, count(*) AS c
+            FROM `pingboxproduction.Address.eth_token_interaction_partitioned`
+            WHERE  token_address = "0x1f9840a85d5af5bf1d1762f925bdaddc4201f984" or token_address='0x6b3595068778dd592e39a122f4f5a5cf09c90fe2' or token_address = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+               AND  last_transacted  BETWEEN "2022-09-15" and "2022-09-18" 
+            group by wallet_address
+            having c = 3
+
 
 """
 
@@ -117,24 +119,32 @@ limit 50
 #@authorized
 async def token_data(request):
     #amafans_channel_object = request.app.config.amafans_channel_object
-    
-    if not request.args.getlist("token_addresses") :
-        raise CustomError("token_addresses is required and must be List")
+    if not request.args.get("limit"):
+        limit = 200
+    else:
+        limit =  request.args.get("limit")
 
-    if type(request.args.getlist("token_addresses")) != list:
-        raise CustomError("token_addresses is required and must be List")
+    if not request.args.get("offset"):
+        offset = 0
+    else:
+        offset = request.args.get("offset")
+
+
+
+    if not request.args.get("token_addresses") :
+        raise CustomError("token_addresses is required ")
 
     if not request.args.get("chain") or  request.args.get("chain") not in ["ethereum", "polygon"]:
         raise CustomError("Chain is required and should be either ethereum or polygon")
 
     if request.args.get("chain") ==  "polygon":
         query = f"""
-            SELECT *
+            SELECT wallet_address, Max(last_transacted) as last_transacted, count(*) AS c
             FROM `{request.app.config.bq_polygon_table}`
             """        
     else:
         query = f"""
-            SELECT *
+            SELECT wallet_address, Max(last_transacted) as last_transacted, count(*) AS c
             FROM `{request.app.config.bq_eth_table}`
             """
 
@@ -146,7 +156,7 @@ async def token_data(request):
         if index == 0:
             and_statement += f"WHERE token_address='{_token_address}' "
         else:
-            and_statement += f"AND token_address='{_token_address}' "
+            and_statement += f"OR token_address='{_token_address}' "
 
     query += and_statement
     if not request.args.get("from_date") or not request.args.get("to_date"):
@@ -160,43 +170,39 @@ async def token_data(request):
     datetime.datetime.strptime(from_date,"%Y-%m-%d")
     datetime.datetime.strptime(to_date,"%Y-%m-%d")
 
-    query +=  f'AND  last_transacted  BETWEEN "{from_date}" and "{to_date}"'
+    query +=  f"""AND last_transacted  
+                BETWEEN '{from_date}' and '{to_date}'
+                """
 
-
-    # query = """
-    #     SELECT corpus AS title, COUNT(word) AS unique_words
-    #     FROM `bigquery-public-data.samples.shakespeare`
-    #     GROUP BY title
-    #     ORDER BY unique_words
-    #     DESC LIMIT 10
-    # """
-
-    query += " ORDER BY ABS(balance)"
+    query += f""" group by wallet_address 
+                having c = {len(token_addresses)}
+                LIMIT {limit}
+                OFFSET {offset}"""
     
-    # _query = json.dumps(query)
+    # # _query = json.dumps(query)
     print (query)
 
     client = bigquery.Client()
     results = client.query(query)
     result = []
     for row in results.result():
-        if request.args.get("chain") ==  "ethereum":
-            document = await request.app.config.TOKENS.find_one({"ethereum": row['token_address']})
-        else:
-            document = await request.app.config.TOKENS.find_one({"polygon": row['token_address']})
-        if document:
-            name = document.get("name")
-            symbol = document.get("symbol")
-        else:
-            name = row["name"]
-            symbol = row["symbol"]
-        result.append({"token_address": row['token_address'],
+        # if request.args.get("chain") ==  "ethereum":
+        #     document = await request.app.config.TOKENS.find_one({"ethereum": row['token_address']})
+        # else:
+        #     document = await request.app.config.TOKENS.find_one({"polygon": row['token_address']})
+        # if document:
+        #     name = document.get("name")
+        #     symbol = document.get("symbol")
+        # else:
+        #     name = row["name"]
+        #     symbol = row["symbol"]
+        result.append({
                 "wallet_address": row['wallet_address'],
                 "last_transacted": row['last_transacted'].strftime("%s"),
-                "name": name,
-                "symbol": symbol
+                # "name": name,
+                # "symbol": symbol
         })
-
+    logger.success(f"Length of the result returned is {len(result)}")
     return Response.success_response(data=result)
 
 
