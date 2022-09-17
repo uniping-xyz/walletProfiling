@@ -104,6 +104,15 @@ async def search_token(request):
     return Response.success_response(data=tokens)
 
 
+"""
+   SELECT * FROM `pingboxproduction.Address.eth_token_interaction_partitioned` 
+WHERE last_transacted BETWEEN "2022-09-1" and "2022-09-15"
+and token_address = "0x0000000000004946c0e9f43f4dee607b0ef1fa1c"
+ORDER BY ABS(balance) DESC
+limit 50
+
+"""
+
 @FIND_ADDRESSES_BP.get('token_data')
 #@authorized
 async def token_data(request):
@@ -140,14 +149,18 @@ async def token_data(request):
             and_statement += f"AND token_address='{_token_address}' "
 
     query += and_statement
-    if request.args.get("last_active"):
-        last_transacted = request.args.get('last_transacted')
-        
-        datetime.datetime.strptime(last_transacted,"%Y-%m-%d")
-        # except ValueError as err:
-        #     raise CustomError("Invalid date format , must be in `%Y-%m-%d`")
+    if not request.args.get("from_date") or not request.args.get("to_date"):
+        raise CustomError("from_date and to_date params are required")
+    from_date = request.args.get('from_date')
+    to_date = request.args.get('to_date')
 
-        query +=  f'AND  DATE(last_transacted) > "{last_transacted}"'
+    if from_date > to_date:
+        raise CustomError("Invalid date range")
+
+    datetime.datetime.strptime(from_date,"%Y-%m-%d")
+    datetime.datetime.strptime(to_date,"%Y-%m-%d")
+
+    query +=  f'AND  last_transacted  BETWEEN "{from_date}" and "{to_date}"'
 
 
     # query = """
@@ -158,10 +171,11 @@ async def token_data(request):
     #     DESC LIMIT 10
     # """
 
-    query += " ORDER BY last_transacted"
+    query += " ORDER BY ABS(balance) DESC limit 200"
     
     # _query = json.dumps(query)
-    
+    print (query)
+
     client = bigquery.Client()
     results = client.query(query)
     result = []
