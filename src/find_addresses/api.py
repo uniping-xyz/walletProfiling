@@ -171,7 +171,7 @@ async def token_data(request):
     #     DESC LIMIT 10
     # """
 
-    query += " ORDER BY ABS(balance) DESC limit 200"
+    query += " ORDER BY ABS(balance)"
     
     # _query = json.dumps(query)
     print (query)
