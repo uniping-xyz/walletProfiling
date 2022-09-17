@@ -129,9 +129,10 @@ async def token_data(request):
             FROM `{request.app.config.bq_eth_table}`
             """
 
+    token_addresses = [addr.replace(" ", "") for addr in request.args.get("token_addresses").split(",")]
 
     and_statement = ""
-    for (index, token_address) in enumerate(request.args.getlist("token_addresses")):
+    for (index, token_address) in enumerate(token_addresses):
         _token_address = token_address.lower()
         if index == 0:
             and_statement += f"WHERE token_address='{_token_address}' "
