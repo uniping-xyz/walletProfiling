@@ -8,6 +8,7 @@ from utils.authorization import authorized, authorized_optional
 from utils.errors import CustomError
 import datetime
 import json
+import aiohttp
 from google.cloud import bigquery
 
 FIND_ADDRESSES_BP = Blueprint("channels", url_prefix='/find_address', version=1)
@@ -237,3 +238,26 @@ async def token_data(request):
 
     return Response.success_response(data=query)
 
+
+
+@FIND_ADDRESSES_BP.get('user_token_balances')
+async def user_token_balances(request):
+    wallet_address = request.args.get('wallet_address')
+    if not wallet_address:
+        raise CustomError("Wallet address is required")
+    headers = {'Content-type': 'application/json'}
+    params = {"jsonrpc":"2.0","method":"alchemy_getTokenBalances","params": [request.args.get('wallet_address').lower(), "erc20"],"id":"42"}
+    async with aiohttp.ClientSession() as session:
+        async with session.post(request.app.config.WEB3_PROVIDER, json=params, headers=headers) as resp:
+            response  = await resp.json()
+    logger.success(response)
+    result = []
+    for e in response["result"]["tokenBalances"]:
+        contract_address = e["contractAddress"]
+        token_balance = e["tokenBalance"]
+        _contract_address =  await request.app.config.TOKENS.find_one({"ethereum": contract_address.lower()}, 
+                        projection={"ethereum":  True, "name": True})
+        if _contract_address:
+            contract_address = _contract_address.get("name")
+        result.append({"contract_address": contract_address, "balance": int(token_balance.replace("0x", ""), 16)/10**18})
+    return Response.success_response(data=result)

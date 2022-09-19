@@ -60,6 +60,7 @@ async def after_server_start(app, loop):
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = app.config[ENVIRONMENT]["GOOGLE_CREDS_JSON_PATH"]
     app.config.bq_polygon_table = app.config[ENVIRONMENT]["BQ_POLYGON_TABLE_NAME"]
     app.config.bq_eth_table = app.config[ENVIRONMENT]["BQ_ETH_TABLE_NAME"]
+    app.config.WEB3_PROVIDER = app.config[ENVIRONMENT]["WEB3_PROVIDER"]
 
     return
 
