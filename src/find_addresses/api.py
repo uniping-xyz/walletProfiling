@@ -121,7 +121,7 @@ async def search_token(request):
 async def token_data(request):
     #amafans_channel_object = request.app.config.amafans_channel_object
     if not request.args.get("limit"):
-        limit = 200
+        limit = 100
     else:
         limit =  request.args.get("limit")
 
@@ -204,7 +204,9 @@ async def token_data(request):
                 # "symbol": symbol
         })
     logger.success(f"Length of the result returned is {len(result)}")
-    return Response.success_response(data=result)
+    await request.app.config.QUERIES.insert_one({"query": query, "result_length": len(result), "result": result })
+    sorted_result = sorted(result,  key=lambda d: d['last_transacted'])
+    return Response.success_response(data=sorted_result)
 
 
 @FIND_ADDRESSES_BP.get('wallet_data')
@@ -246,7 +248,7 @@ async def user_token_balances(request):
     if not wallet_address:
         raise CustomError("Wallet address is required")
     headers = {'Content-type': 'application/json'}
-    params = {"jsonrpc":"2.0","method":"alchemy_getTokenBalances","params": [request.args.get('wallet_address').lower(), "erc20"],"id":"42"}
+    params = {"jsonrpc":"2.0","method":"alchemy_getTokenBalances","params": [request.args.get('wallet_addresrs').lower(), "erc20"],"id":"42"}
     async with aiohttp.ClientSession() as session:
         async with session.post(request.app.config.WEB3_PROVIDER, json=params, headers=headers) as resp:
             response  = await resp.json()
@@ -259,5 +261,7 @@ async def user_token_balances(request):
                         projection={"ethereum":  True, "name": True})
         if _contract_address:
             contract_address = _contract_address.get("name")
-        result.append({"contract_address": contract_address, "balance": int(token_balance.replace("0x", ""), 16)/10**18})
+        balance = int(token_balance.replace("0x", ""), 16)/10**18
+        if not round(balance, 2) <= 0.0:
+            result.append({"contract_address": contract_address, "balance": balance})
     return Response.success_response(data=result)

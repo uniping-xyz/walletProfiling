@@ -49,6 +49,8 @@ async def db_connection():
     db_config = app.config[ENVIRONMENT]["DATABASE"]
     db = connection[db_config["dbname"]]
     app.config.TOKENS = db["tokens"]
+    app.config.QUERIES = db["queries"]
+
     logger.success(f"Mongodb connection established {db}")
     return
 
