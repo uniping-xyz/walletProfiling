@@ -208,7 +208,7 @@ async def token_data(request):
         })
     logger.success(f"Length of the result returned is {len(result)}")
     await request.app.config.QUERIES.insert_one({"query": query, "result_length": len(result), "result": result })
-    sorted_result = sorted(result,  key=lambda d: d['last_transacted'])
+    sorted_result = sorted(result,  key=lambda d: d['last_transacted'], reverse=True)
     return Response.success_response(data=sorted_result)
 
 
@@ -251,7 +251,7 @@ async def user_token_balances(request):
     if not wallet_address:
         raise CustomError("Wallet address is required")
     headers = {'Content-type': 'application/json'}
-    params = {"jsonrpc":"2.0","method":"alchemy_getTokenBalances","params": [request.args.get('wallet_addresrs').lower(), "erc20"],"id":"42"}
+    params = {"jsonrpc":"2.0","method":"alchemy_getTokenBalances","params": [request.args.get('wallet_address').lower(), "erc20"],"id":"42"}
     async with aiohttp.ClientSession() as session:
         async with session.post(request.app.config.WEB3_PROVIDER, json=params, headers=headers) as resp:
             response  = await resp.json()
