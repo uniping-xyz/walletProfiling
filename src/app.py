@@ -9,6 +9,8 @@ import asyncio
 import os
 import multiprocessing
 from find_addresses.api import FIND_ADDRESSES_BP
+from find_addresses.utils import get_ethereum_tags
+
 from sanic_cors import CORS
 
 app = Sanic(__name__)
@@ -63,7 +65,13 @@ async def after_server_start(app, loop):
     app.config.bq_polygon_table = app.config[ENVIRONMENT]["BQ_POLYGON_TABLE_NAME"]
     app.config.bq_eth_table = app.config[ENVIRONMENT]["BQ_ETH_TABLE_NAME"]
     app.config.WEB3_PROVIDER = app.config[ENVIRONMENT]["WEB3_PROVIDER"]
-
+    app.config.LUABASE_API_KEY = app.config[ENVIRONMENT]["LUABASE_API_KEY"]
+    
+    eth_tags = await get_ethereum_tags(app.config.LUABASE_API_KEY)
+    app.config.tags = {}
+    app.config.tags.update({"ethereum": [e["label"] for e in eth_tags]})
+    
+    logger.info(app.config.tags)
     return
 
 @app.listener('after_server_stop')

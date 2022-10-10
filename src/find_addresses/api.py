@@ -6,10 +6,12 @@ import requests
 from utils.utils import Response
 from utils.authorization import authorized, authorized_optional
 from utils.errors import CustomError
+from .utils import get_tagged_ethereum_contracts
 import datetime
 import json
 import aiohttp
 from google.cloud import bigquery
+import re
 
 FIND_ADDRESSES_BP = Blueprint("channels", url_prefix='/find_address', version=1)
 
@@ -264,4 +266,32 @@ async def user_token_balances(request):
         balance = int(token_balance.replace("0x", ""), 16)/10**18
         if not round(balance, 2) <= 0.0:
             result.append({"contract_address": contract_address, "balance": balance})
+    return Response.success_response(data=result)
+
+@FIND_ADDRESSES_BP.get('find_tags')
+async def user_token_balances(request):
+
+    if  request.args.get("chain") not in request.app.config.SUPPORTED_CHAINS:
+        raise CustomError("chain not suported")
+
+    if  request.args.get("query"):
+        query = f".*{request.args.get('query')}"
+    else:
+        query = f".*"
+
+    r = re.compile(query)
+    result = list(filter(r.match, request.app.config.tags[request.args.get("chain")])) # Read Note below
+    return Response.success_response(data=result)
+
+
+@FIND_ADDRESSES_BP.get('find_tagged_contracts')
+async def find_tagged_contracts(request):
+
+    if  request.args.get("chain") not in request.app.config.SUPPORTED_CHAINS:
+        raise CustomError("chain not suported")
+
+    if  not request.args.get("tag"):
+        raise CustomError("Tag is required")
+
+    result = await get_tagged_ethereum_contracts(request.app.config.LUABASE_API_KEY, request.args.get("tag"))
     return Response.success_response(data=result)
