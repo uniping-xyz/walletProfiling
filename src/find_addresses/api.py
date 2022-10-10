@@ -142,12 +142,12 @@ async def token_data(request):
 
     if request.args.get("chain") ==  "polygon":
         query = f"""
-            SELECT wallet_address, balance,  Max(last_transacted) as last_transacted, count(*) AS c
+            SELECT wallet_address, balance, Max(last_transacted) as last_transacted, count(*) AS c
             FROM `{request.app.config.bq_polygon_table}`
             """        
     else:
         query = f"""
-            SELECT wallet_address, Max(last_transacted) as last_transacted, count(*) AS c
+            SELECT wallet_address, balance, Max(last_transacted) as last_transacted, count(*) AS c
             FROM `{request.app.config.bq_eth_table}`
             """
 
@@ -179,7 +179,7 @@ async def token_data(request):
 
     query += f""" group by wallet_address, balance
                 having c = {len(token_addresses)}
-                ORDER BY balance DESC
+                order by balance desc
                 LIMIT {limit}
                 OFFSET {offset}"""
     
