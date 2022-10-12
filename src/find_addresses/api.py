@@ -6,7 +6,7 @@ import requests
 from utils.utils import Response
 from utils.authorization import authorized, authorized_optional
 from utils.errors import CustomError
-from .utils import get_tagged_ethereum_contracts
+from .utils import get_tagged_ethereum_contracts, topERC20, topERC1155, topERC721
 import datetime
 import json
 import aiohttp
@@ -329,8 +329,6 @@ ORDER BY
 #@authorized
 async def token_stats(request):
 
-
-
     if not request.args.get("token_address") :
         raise CustomError("token_address is required ")
 
@@ -370,16 +368,6 @@ async def token_stats(request):
     results = client.query(query)
     result = []
     for row in results.result():
-        # if request.args.get("chain") ==  "ethereum":
-        #     document = await request.app.config.TOKENS.find_one({"ethereum": row['token_address']})
-        # else:
-        #     document = await request.app.config.TOKENS.find_one({"polygon": row['token_address']})
-        # if document:
-        #     name = document.get("name")
-        #     symbol = document.get("symbol")
-        # else:
-        #     name = row["name"]
-        #     symbol = row["symbol"]
         result.append({
                 "total_transactions": row['total_transactions'],
                 "timestamp": row['date'].strftime("%s"),
@@ -389,4 +377,35 @@ async def token_stats(request):
         })    
     logger.success(result)
     logger.success(f"Length of the result returned is {len(result)}")
+    return Response.success_response(data=result)
+
+
+@FIND_ADDRESSES_BP.get('most_popular')
+#@authorized
+async def most_popular(request):
+    if  request.args.get("chain") not in request.app.config.SUPPORTED_CHAINS:
+        raise CustomError("chain not suported")
+
+    if  not request.args.get("erc_type"):
+        raise CustomError("ERC Type is required")
+
+    if  not request.args.get("erc_type") in ["ERC20", "ERC721", "ERC1155"]:
+        raise CustomError("ERC Type is not valid")
+
+    if  not request.args.get("number_of_days"):
+        number_of_days = 3
+    else:
+        number_of_days = request.args.get("number_of_days")
+
+    if request.args.get("erc_type") ==  "ERC20":
+        result = await topERC20(request.app.config.LUABASE_API_KEY,  
+                    request.args.get("tag"), number_of_days)
+
+    elif request.args.get("erc_type") ==  "ERC721":
+        result = await topERC721(request.app.config.LUABASE_API_KEY,  
+                    request.args.get("tag"), number_of_days)    
+    else:
+        result = await topERC1155(request.app.config.LUABASE_API_KEY,  
+                    request.args.get("tag"), number_of_days)
+
     return Response.success_response(data=result)

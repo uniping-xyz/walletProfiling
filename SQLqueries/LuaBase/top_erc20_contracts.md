@@ -39,6 +39,10 @@ payload = {
   "api_key": LUABASE_API_KEY,
   "details": {
     "parameters": {
+      "chain": {
+            "type": "value",
+            "value": "ethereum"
+      },
       "number_of_days": {
             "type": "value",
             "value": "3"
@@ -48,6 +52,8 @@ payload = {
 }
 headers = {"content-type": "application/json"}
 response = requests.request("POST", url, json=payload, headers=headers)
-data = response.json()
+data = response.json() 
+
+
 
 ```
