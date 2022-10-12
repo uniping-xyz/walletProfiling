@@ -208,7 +208,8 @@ async def token_data(request):
         })
     logger.success(f"Length of the result returned is {len(result)}")
     await request.app.config.QUERIES.insert_one({"query": query, "result_length": len(result), "result": result })
-    sorted_result = sorted(result,  key=lambda d: d['last_transacted'], reverse=True)
+    sorted_result = sorted(result,  key=lambda d: d['last_transacted'], reverse=True
+    )
     return Response.success_response(data=sorted_result)
 
 
@@ -295,4 +296,97 @@ async def find_tagged_contracts(request):
         raise CustomError("Tag is required")
 
     result = await get_tagged_ethereum_contracts(request.app.config.LUABASE_API_KEY, request.args.get("tag"))
+    return Response.success_response(data=result)
+
+
+
+"""
+with transactions AS (
+select *
+  from `pingboxproduction.Address.total_transactions_pertoken_perday`
+  where token_address = lower("0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0")
+
+),
+
+unique_addresses AS (
+  select *
+    from `pingboxproduction.Address.unique_addresses_pertoken_perday`
+    where token_address = lower("0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0")
+
+)
+
+select transactions.m_block_timestamp as date, transactions.total_transactions, unique_addresses.unique_addresses from
+ transactions
+JOIN
+  unique_addresses 
+ON transactions.m_block_timestamp = unique_addresses.m_block_timestamp
+
+ORDER BY
+    transactions.m_block_timestamp DESC
+"""
+
+@FIND_ADDRESSES_BP.get('token_stats')
+#@authorized
+async def token_stats(request):
+
+
+
+    if not request.args.get("token_address") :
+        raise CustomError("token_address is required ")
+
+    if not request.args.get("chain") or  request.args.get("chain") not in ["ethereum", "polygon"]:
+        raise CustomError("Chain is required and should be either ethereum or polygon")
+    
+    token_address = request.args.get("token_address")
+    query = f"""
+                with transactions AS (
+                    select *
+                        from `pingboxproduction.Address.total_transactions_pertoken_perday`
+                        where token_address = lower("{token_address}")
+                    ),
+
+                unique_addresses AS (
+                    select *
+                        from `pingboxproduction.Address.unique_addresses_pertoken_perday`
+                        where token_address = lower("{token_address}")
+                    )
+                
+                select transactions.m_block_timestamp as date, 
+                    transactions.total_transactions, 
+                    unique_addresses.unique_addresses 
+                from
+                    transactions
+                JOIN
+                    unique_addresses 
+                ON transactions.m_block_timestamp = unique_addresses.m_block_timestamp
+                ORDER BY
+                transactions.m_block_timestamp DESC
+    """
+    
+    # # _query = json.dumps(query)
+    print (query)
+
+    client = bigquery.Client()
+    results = client.query(query)
+    result = []
+    for row in results.result():
+        # if request.args.get("chain") ==  "ethereum":
+        #     document = await request.app.config.TOKENS.find_one({"ethereum": row['token_address']})
+        # else:
+        #     document = await request.app.config.TOKENS.find_one({"polygon": row['token_address']})
+        # if document:
+        #     name = document.get("name")
+        #     symbol = document.get("symbol")
+        # else:
+        #     name = row["name"]
+        #     symbol = row["symbol"]
+        result.append({
+                "total_transactions": row['total_transactions'],
+                "timestamp": row['date'].strftime("%s"),
+                "unique_addresses": row["unique_addresses"]
+                # "name": name,
+                # "symbol": symbol
+        })    
+    logger.success(result)
+    logger.success(f"Length of the result returned is {len(result)}")
     return Response.success_response(data=result)
