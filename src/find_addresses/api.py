@@ -398,14 +398,24 @@ async def most_popular(request):
         number_of_days = request.args.get("number_of_days")
 
     if request.args.get("erc_type") ==  "ERC20":
-        result = await topERC20(request.app.config.LUABASE_API_KEY,  
+        results = await topERC20(request.app.config.LUABASE_API_KEY,  
                     request.args.get("tag"), number_of_days)
 
     elif request.args.get("erc_type") ==  "ERC721":
-        result = await topERC721(request.app.config.LUABASE_API_KEY,  
+        results = await topERC721(request.app.config.LUABASE_API_KEY,  
                     request.args.get("tag"), number_of_days)    
     else:
-        result = await topERC1155(request.app.config.LUABASE_API_KEY,  
+        results = await topERC1155(request.app.config.LUABASE_API_KEY,  
                     request.args.get("tag"), number_of_days)
-
+    result = []
+    for row in results.result():
+        result.append({
+                "total_transactions": row['total_transactions'],
+                "timestamp": row['date'].strftime("%s"),
+                "unique_addresses": row["unique_addresses"]
+                # "name": name,
+                # "symbol": symbol
+        })    
+    logger.success(result)
+    logger.success(f"Length of the result returned is {len(result)}")
     return Response.success_response(data=result)
