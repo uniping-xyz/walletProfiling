@@ -9,6 +9,7 @@ import asyncio
 import os
 import multiprocessing
 from find_addresses.api import FIND_ADDRESSES_BP
+from find_addresses.token_search import  TOKEN_SEARCH_BP
 from find_addresses.utils import get_ethereum_tags
 
 from sanic_cors import CORS
@@ -91,6 +92,7 @@ if __name__ == "__main__":
 
     APP_BP = Blueprint.group(
                             FIND_ADDRESSES_BP,
+                            TOKEN_SEARCH_BP,
                             url_prefix='/api')
     app.blueprint(APP_BP)
     for route in app.router.routes:

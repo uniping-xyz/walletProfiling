@@ -58,7 +58,7 @@ def topERC20(luabase_api_key, chain, number_of_days):
 
     payload = {
       "block": {
-        "data_uuid": "8a3a96a16a354abe84dfb089155f5b18",
+        "data_uuid": "aebb592047534769b0002cd880a35b5a",
         "details": {
             "parameters": {
                  "chain": {
@@ -85,7 +85,7 @@ def topERC1155(luabase_api_key, chain, number_of_days):
 
     payload = {
       "block": {
-        "data_uuid": "3d9e2c5ca87c4a50a8c6908fdd5b316f",
+        "data_uuid": "f835d83ad48843a5861b5bb083360a5b",
         "details": {
             "parameters": {
                  "chain": {
@@ -112,7 +112,7 @@ def topERC721(luabase_api_key, chain, number_of_days):
 
     payload = {
       "block": {
-        "data_uuid": "6118fde47ec84db2b33d8471d0525c8b",
+        "data_uuid": "3be6321ff9c2431ab29c0c85469df432",
         "details": {
             "parameters": {
                  "chain": {

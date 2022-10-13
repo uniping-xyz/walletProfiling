@@ -4,7 +4,7 @@
 ### ERC1155, {{home}}.erc1155token_names 
 
 ```
-select DISTINCT contract_address, 'erc1155' as contract_type, t.name, t.symbol
+select DISTINCT contract_address, 'erc1155' as contract_type, t.name, t.symbol, lower(t.name) as lower_name, lower(t.symbol) as lower_symbol
 from ethereum.erc1155_transfers_single
 INNER JOIN
 ethereum.amended_tokens as t
@@ -40,7 +40,7 @@ data = response.json()
 ### ERC721, {{home}}.erc721token_names 
 
 ```
-select DISTINCT contract_address, 'erc721' as contract_type, t.name, t.symbol
+select DISTINCT contract_address, 'erc721' as contract_type, t.name, t.symbol, lower(t.name) as lower_name, lower(t.symbol) as lower_symbol
 from ethereum.erc721_transfers
 INNER JOIN
 ethereum.amended_tokens as t
@@ -78,7 +78,7 @@ data = response.json()
 ### ERC20, {{home}}.erc20token_names 
 
 ```
-select DISTINCT contract_address, 'erc20' as contract_type, t.name, t.symbol
+select DISTINCT contract_address, 'erc20' as contract_type, t.name, t.symbol, lower(t.name) as lower_name, lower(t.symbol) as lower_symbol
 from ethereum.erc20_transfers
 INNER JOIN
 ethereum.amended_tokens as t
