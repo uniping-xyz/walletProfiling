@@ -6,7 +6,7 @@ import requests
 from utils.utils import Response
 from utils.authorization import authorized, authorized_optional
 from utils.errors import CustomError
-from .utils import get_tagged_ethereum_contracts, topERC20, topERC1155, topERC721
+from .utils import get_tagged_ethereum_contracts
 import datetime
 import json
 import aiohttp

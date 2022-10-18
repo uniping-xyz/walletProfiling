@@ -99,7 +99,7 @@ async def search_erc1155_text(session, luabase_api_key, text):
 
 @TOKEN_SEARCH_BP.get('text')
 #@authorized
-async def most_popular(request):
+async def search_text(request):
     if  request.args.get("chain") not in request.app.config.SUPPORTED_CHAINS:
         raise CustomError("chain not suported")
 
