@@ -11,97 +11,119 @@ MOST_POPULAR_BP = Blueprint("most_popular", url_prefix='/most_popular/tokens', v
 
 
 
-def topERC20(luabase_api_key, chain, limit, offset, number_of_days):
+async def topERC20(luabase_api_key, chain, limit, offset, number_of_days):
     url = "https://q.luabase.com/run"
-
     payload = {
-      "block": {
-        "data_uuid": "8a3a96a16a354abe84dfb089155f5b18",
-        "details": {
-            "parameters": {
-                "chain": {
-                        "type": "value",
-                        "value": chain
-                },
-                "number_of_days": {
-                        "type": "value",
-                        "value": number_of_days
-                },
-                "limit": {
-                        "value": limit,
-                        "type": "value"
-                },
-                "offset": {
-                        "value": offset,
-                        "type": "value"
-                }
-            }
-                  }
-            },
-        "api_key": luabase_api_key
-        }
-    headers = {"content-type": "application/json"}
-    response = requests.request("POST", url, json=payload, headers=headers)
-    data = response.json()
-    print (data)
-    return data["data"]
-
-def topERC1155(luabase_api_key, chain, limit, offset, number_of_days):
-    url = "https://q.luabase.com/run"
-
-    payload = {
-      "block": {
-        "data_uuid": "3d9e2c5ca87c4a50a8c6908fdd5b316f",
-        "details": {
-            "parameters": {
+        "block": {
+            "data_uuid": "3a67d1de7cf9449d864813cc129f9e97",
+            "details": {
+                "limit": 2000,
+                "parameters": {
                     "chain": {
-                            "type": "value",
-                            "value": chain
+                        "value": chain,
+                        "type": "value"
                     },
                     "number_of_days": {
-                            "type": "value",
-                            "value": number_of_days
+                        "value": number_of_days,
+                        "type": "value"
                     },
                     "limit": {
-                            "value": limit,
-                            "type": "value"
+                        "value": limit,
+                        "type": "value"
                     },
                     "offset": {
-                            "value": offset,
-                            "type": "value"
+                        "value": offset,
+                        "type": "value"
                     }
                 }
-                  }
-            },
-        "api_key": luabase_api_key
-        }
+            }
+        },
+        "api_key": luabase_api_key,
+    }
+    headers = {"content-type": "application/json"}
+    response = requests.request("POST", url, json=payload, headers=headers)
+    data = response.json() 
+    print (data)
+    return data["data"]
+
+async def topERC1155(luabase_api_key, chain, limit, offset, number_of_days):
+    STANDARD = 'erc1155'
+    url = "https://q.luabase.com/run"
+
+    payload = {
+        "block": {
+            "data_uuid": "3d9e2c5ca87c4a50a8c6908fdd5b316f",
+            "details": {
+                "limit": 2000,
+                "parameters": {
+                    "chain": {
+                        "type": "value",
+                        "value": chain
+                    },
+                    "number_of_days": {
+                        "type": "value",
+                        "value": number_of_days
+                    },
+                    "standard": {
+                        "value": STANDARD,
+                        "type": "value"
+                    },
+                    "limit": {
+                        "type": "value",
+                        "value": limit
+                    },
+                    "offset": {
+                        "type": "value",
+                        "value": offset
+                    }
+                }
+            }
+        },
+        "api_key": luabase_api_key,
+    }
+
     headers = {"content-type": "application/json"}
     response = requests.request("POST", url, json=payload, headers=headers)
     data = response.json()
     print (data)
     return data["data"]
 
-def topERC721(luabase_api_key, chain, number_of_days):
+async def topERC721(luabase_api_key, chain, limit, offset, number_of_days):
+    STANDARD = 'erc721'
     url = "https://q.luabase.com/run"
 
     payload = {
-      "block": {
-        "data_uuid": "3be6321ff9c2431ab29c0c85469df432",
-        "details": {
-            "parameters": {
-                 "chain": {
-                     "type": "value",
-                     "value": chain
-                      },
-                  "number_of_days": {
+        "block": {
+            "data_uuid": "3d9e2c5ca87c4a50a8c6908fdd5b316f",
+            "details": {
+                "limit": 2000,
+                "parameters": {
+                    "chain": {
+                        "type": "value",
+                        "value": chain
+                    },
+                    "number_of_days": {
                         "type": "value",
                         "value": number_of_days
-                          }
+                    },
+                    "standard": {
+                        "value": STANDARD,
+                        "type": "value"
+                    },
+                    "limit": {
+                        "type": "value",
+                        "value": limit
+                    },
+                    "offset": {
+                        "type": "value",
+                        "value": offset
                     }
-                  }
-            },
-        "api_key": luabase_api_key
-        }
+                }
+            }
+        },
+        "api_key": luabase_api_key,
+    }
+
     headers = {"content-type": "application/json"}
     response = requests.request("POST", url, json=payload, headers=headers)
     data = response.json()
@@ -128,13 +150,13 @@ async def most_popular(request):
 
 
     if not request.args.get("limit"):
-        limit = 3
+        limit = 20
     else:
         limit = request.args.get("limit")
 
 
     if not request.args.get("offset"):
-        offset = 3
+        offset = 0
     else:
         offset = request.args.get("offset")
 
@@ -145,18 +167,17 @@ async def most_popular(request):
 
     elif request.args.get("erc_type") ==  "ERC721":
         results = await topERC721(request.app.config.LUABASE_API_KEY,  
-                    request.args.get("chain"), number_of_days)    
+                    request.args.get("chain"), limit, offset, number_of_days)    
     else:
         results = await topERC1155(request.app.config.LUABASE_API_KEY,  
                     request.args.get("chain"), limit, offset, number_of_days)
     result = []
-    for row in results.result():
+    for row in results:
         result.append({
                 "total_transactions": row['total_transactions'],
-                "timestamp": row['date'].strftime("%s"),
-                "unique_addresses": row["unique_addresses"]
-                # "name": name,
-                # "symbol": symbol
+                "contract_address": row['contract_address'],
+                "name": row['name'],
+                "symbol": row['symbol']
         })    
     logger.success(result)
     logger.success(f"Length of the result returned is {len(result)}")
