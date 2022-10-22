@@ -101,4 +101,5 @@ if __name__ == "__main__":
         print(f"/{route.path:60} - {route.name:70} -  {route.methods} [{route.router}]")
     logger.info("Get the swagger doucmentation at /swagger")
 
-    app.run(host="0.0.0.0", port=8006, workers=1, auto_reload=True, access_log=False,  reload_dir="./config")
+
+    app.run(host="0.0.0.0", port=8001, workers=1, auto_reload=True, access_log=False,  reload_dir="./config")
