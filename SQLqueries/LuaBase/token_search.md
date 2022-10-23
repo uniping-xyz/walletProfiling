@@ -1,3 +1,51 @@
+### Token addresses filtering 
+#### ERC1155, TABLE: {{home}}.erc1155token_names
+```
+with erc1155 as (select DISTINCT contract_address
+from ethereum.nft_transfers
+where standard = 'erc1155'
+)
+
+select DISTINCT contract_address, 'erc1155' as contract_type, t.name, t.symbol, lower(t.name) as lower_name, lower(t.symbol) as lower_symbol
+from erc1155
+INNER JOIN
+ethereum.amended_tokens as t
+ON
+contract_address == t.address
+```
+
+#### ERC721, TABLE: {{home}}.erc721token_names
+```
+with erc721 as (select DISTINCT contract_address
+from ethereum.nft_transfers
+where standard = 'erc721'
+)
+
+select DISTINCT contract_address, 'erc721' as contract_type, t.name, t.symbol, lower(t.name) as lower_name, lower(t.symbol) as lower_symbol
+from erc721
+INNER JOIN
+ethereum.amended_tokens as t
+ON
+contract_address == t.address
+```
+
+
+#### ERC20, TABLE: {{home}}.erc20token_names
+```
+with erc20 as (select DISTINCT token_address
+from {{chain}}.token_transfers
+WHERE  token_address NOT IN (SELECT DISTINCT contract_address FROM {{chain}}.nft_transfers))
+
+select token_address as contract_address, 'erc20' as contract_type, t.name, t.symbol, lower(t.name) as lower_name, lower(t.symbol) as lower_symbol from erc20
+INNER JOIN
+ethereum.amended_tokens as t
+ON
+contract_address == t.address
+```
+
+
+
+
 
 ### Token search on erc20, erc721, and erc1155 types.
 
