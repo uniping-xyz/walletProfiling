@@ -12,6 +12,7 @@ from find_addresses.api import FIND_ADDRESSES_BP
 from find_addresses.token_search import  TOKEN_SEARCH_BP
 from find_addresses.utils import get_ethereum_tags
 from find_addresses.top_tokens import MOST_POPULAR_BP
+from find_addresses.token_holders import TOKEN_HOLDERS_BP
 
 from sanic_cors import CORS
 
@@ -95,6 +96,7 @@ if __name__ == "__main__":
                             FIND_ADDRESSES_BP,
                             TOKEN_SEARCH_BP,
                             MOST_POPULAR_BP,
+                            TOKEN_HOLDERS_BP,
                             url_prefix='/api')
     app.blueprint(APP_BP)
     for route in app.router.routes:
@@ -102,4 +104,4 @@ if __name__ == "__main__":
     logger.info("Get the swagger doucmentation at /swagger")
 
 
-    app.run(host="0.0.0.0", port=8001, workers=1, auto_reload=True, access_log=False,  reload_dir="./config")
+    app.run(host="0.0.0.0", port=8006, workers=1, auto_reload=True, access_log=False,  reload_dir="./config")
