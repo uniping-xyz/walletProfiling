@@ -289,3 +289,20 @@ async def token_stats(request):
     logger.success(f"Length of the result returned is {len(result)}")
     return Response.success_response(data=result)
 
+
+@FIND_ADDRESSES_BP.get('token_stats_average')
+#@authorized
+async def token_stats_average(request):
+    if not request.args.get("token_address") :
+        raise CustomError("token_address is required ")
+
+    if not request.args.get("chain") or  request.args.get("chain") not in ["ethereum", "polygon"]:
+        raise CustomError("Chain is required and should be either ethereum or polygon")
+    url = f"https://api.coingecko.com/api/v3/nfts/{request.args.get('chain')}/contract/{request.args.get('token_address')}"
+    logger.success(url)
+    r = requests.get(url)
+    result = r.json()
+
+    logger.success(result)
+    logger.success(f"Length of the result returned is {len(result)}")
+    return Response.success_response(data=result)
