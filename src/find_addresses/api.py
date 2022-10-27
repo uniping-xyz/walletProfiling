@@ -175,9 +175,11 @@ async def user_token_balances(request):
                         projection={"ethereum":  True, "name": True})
         if _contract_address:
             contract_address = _contract_address.get("name")
-        balance = int(token_balance.replace("0x", ""), 16)/10**18
-        if not round(balance, 2) <= 0.0:
-            result.append({"contract_address": contract_address, "balance": balance})
+        token_balance = token_balance.replace("0x", "")
+        if token_balance:
+            balance = int(token_balance, 16)/10**18
+            if not round(balance, 2) <= 0.0:
+                result.append({"contract_address": contract_address, "balance": balance})
     return Response.success_response(data=result)
 
 @FIND_ADDRESSES_BP.get('find_tags')
