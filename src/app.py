@@ -13,6 +13,7 @@ from find_addresses.token_search import  TOKEN_SEARCH_BP
 from find_addresses.utils import get_ethereum_tags
 from find_addresses.top_tokens import MOST_POPULAR_BP
 from find_addresses.token_holders import TOKEN_HOLDERS_BP
+from find_addresses.token_transfers import TOKEN_TRANSFERS_BP
 
 from sanic_cors import CORS
 
@@ -97,6 +98,7 @@ if __name__ == "__main__":
                             TOKEN_SEARCH_BP,
                             MOST_POPULAR_BP,
                             TOKEN_HOLDERS_BP,
+                            TOKEN_TRANSFERS_BP,
                             url_prefix='/api')
     app.blueprint(APP_BP)
     for route in app.router.routes:
