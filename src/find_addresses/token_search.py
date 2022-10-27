@@ -7,6 +7,7 @@ from sanic import Blueprint
 from utils.utils import Response
 from utils.errors import CustomError
 from loguru import logger
+from .token_holders import holders_ERC1155, holders_ERC20, holders_ERC721
 
 TOKEN_SEARCH_BP = Blueprint("search", url_prefix='/search/tokens', version=1)
 
@@ -216,9 +217,28 @@ async def find_standard_if_proxy(luabase_api_key, contract_address):
     return None
 
 
+
+async def get_holders(standard, luabase_api_key, contract_address):
+    logger.info('Fetching holders')
+    if standard == 'erc721':
+        return await holders_ERC721(luabase_api_key, 
+            contract_address, 100, 0)
+    elif standard == 'erc1155':
+        return await holders_ERC1155(luabase_api_key, 
+            contract_address, 100, 0)
+    elif standard == 'erc20':
+        return await holders_ERC20(luabase_api_key, 
+            contract_address, 100, 0)
+    
+    else:
+        return []
+
+    return 
+
 """
 Based on the contract address, this API gives you the standard of the contract address
 even if that contract address is a proxy
+Also gives the the top holders of the token
 """
 @TOKEN_SEARCH_BP.get('search_contract_address')
 #@authorized
@@ -234,16 +254,23 @@ async def search_contract_address(request):
                     request.args.get("contract_address"))
     
     logger.info(_response)
+    if not _response:
+        raise CustomError("No contract found")
+
     response = _response[0]
     result = {}
+
     if response.get("is_erc20"):
         logger.success("ERC20 contract found")
         result['standard'] = 'erc20'
+        result['holders']  = await holders_ERC20(request.app.config.LUABASE_API_KEY, 
+            request.args.get("contract_address"), 100, 0)
 
     elif response.get("is_erc721"):
         logger.success("ERC721 contract found")
         result['standard'] = 'erc721'
-        
+    
+   
     elif response.get("is_erc1155"):
         logger.success("ERC1155 contract found")
         result['standard'] = 'erc1155'
@@ -253,6 +280,10 @@ async def search_contract_address(request):
         _response = await find_standard_if_proxy(request.app.config.LUABASE_API_KEY, 
                     request.args.get("contract_address"))
         result['standard'] = _response
+
+    result['holders']  = await get_holders(result['standard'], 
+                                    request.app.config.LUABASE_API_KEY, 
+                                request.args.get("contract_address"))    
 
     return Response.success_response(data=result)
 
