@@ -5,16 +5,18 @@ from sanic import Sanic
 from motor.motor_asyncio import AsyncIOMotorClient
 from sanic import Blueprint
 from loguru import logger
-import asyncio
+from redis import asyncio as aioredis
+
+import asyncio, datetime
 import os
 import multiprocessing
 from find_addresses.api import FIND_ADDRESSES_BP
 from find_addresses.token_search import  TOKEN_SEARCH_BP
-from find_addresses.utils import get_ethereum_tags
 from find_addresses.top_tokens import MOST_POPULAR_BP
 from find_addresses.token_holders import TOKEN_HOLDERS_BP
 from find_addresses.token_transfers import TOKEN_TRANSFERS_BP
-
+from find_addresses.contract_tags import TOKEN_TAGS_BP
+from caching.cache_utils import cache_validity, set_cache, get_cache
 from sanic_cors import CORS
 
 app = Sanic(__name__)
@@ -71,11 +73,34 @@ async def after_server_start(app, loop):
     app.config.WEB3_PROVIDER = app.config[ENVIRONMENT]["WEB3_PROVIDER"]
     app.config.LUABASE_API_KEY = app.config[ENVIRONMENT]["LUABASE_API_KEY"]
     
-    eth_tags = await get_ethereum_tags(app.config.LUABASE_API_KEY)
-    app.config.tags = {}
-    app.config.tags.update({"ethereum": [e["label"] for e in eth_tags]})
+    redis = aioredis.from_url(
+        "redis://localhost", encoding="utf-8", decode_responses=True
+    )
+
     
-    logger.info(app.config.tags)
+    app.config.REDIS_CLIENT = redis.client()
+    ethereum_tags_cache_validity  = await cache_validity(app.config.REDIS_CLIENT, "ethereum-tags", 24)
+    if not ethereum_tags_cache_validity:
+        eth_tags = await get_ethereum_tags(app.config.LUABASE_API_KEY)
+        await set_cache(app.config.REDIS_CLIENT, "ethereum-tags", [e["label"] for e in eth_tags], 24)
+
+    # async with app.config.REDIS_CLIENT as conn:
+    #     await conn.hdel("ethereum-tags", *["expiry", "data"])
+    #     last_cache = await conn.hget("ethereum-tags", "expiry")
+    #     now = (datetime.datetime.now() + datetime.timedelta(hours=24)).strftime("%s")
+    #     if last_cache and int(now)  > int(last_cache):
+
+    #         logger.info("Its more than 24 hours since tags were fetched from the API, Fetching them again")
+    #         print (eth_tags)
+    #         app.config.tags.update({"ethereum": [e["label"] for e in eth_tags]})
+    #         await conn.hset("ethereum-tags", "data", json.dumps([e["label"] for e in eth_tags]))
+    #         await conn.hset("ethereum-tags", "expiry", now)
+    #     else:
+    #         logger.info("Still valid cache for tags, Using from redis cache")
+    #         ethereum_tags = await conn.hget("ethereum-tags", "data")
+    #         app.config.tags.update({"ethereum": json.loads(ethereum_tags)})
+        
+
     return
 
 @app.listener('after_server_stop')
@@ -99,11 +124,12 @@ if __name__ == "__main__":
                             MOST_POPULAR_BP,
                             TOKEN_HOLDERS_BP,
                             TOKEN_TRANSFERS_BP,
+                            TOKEN_TAGS_BP,
                             url_prefix='/api')
     app.blueprint(APP_BP)
     for route in app.router.routes:
         print(f"/{route.path:60} - {route.name:70} -  {route.methods} [{route.router}]")
     logger.info("Get the swagger doucmentation at /swagger")
 
-
+    
     app.run(host="0.0.0.0", port=8001, workers=1, auto_reload=True, access_log=False,  reload_dir="./config")

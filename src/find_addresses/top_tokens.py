@@ -10,6 +10,67 @@ from loguru import logger
 MOST_POPULAR_BP = Blueprint("most_popular", url_prefix='/most_popular/tokens', version=1)
 
 
+"""
+This is the live view  {{home}}.all_time_erc20_live_view and it runs daily
+
+with total_transactions_pertoken_perday as(
+  select count(*) as total_transactions,
+  token_address
+  from {{chain}}.token_transfers
+  WHERE 
+    token_address NOT IN (SELECT DISTINCT contract_address FROM {{chain}}.nft_transfers)
+  GROUP by
+    token_address
+  ORDER BY total_transactions DESC 
+),
+
+with_names as (
+  select distinct tt.total_transactions, tt.token_address as contract_address, pp.address, pp.name, pp.symbol from total_transactions_pertoken_perday as tt
+  left join
+  ethereum.tokens as pp
+  on lower(tt.token_address) = lower(pp.address)
+)
+select * from with_names
+
+The query that fetches contracts from this live view is this
+
+"""
+
+async def all_time_top_erc20(luabase_api_key, chain, limit, offset, number_of_days):
+    url = "https://q.luabase.com/run"
+    payload = {
+        "block": {
+            "data_uuid": "86ab5185ea0f479785e36bfd5da05797",
+            "details": {
+                "limit": 2000,
+                "parameters": {
+                    "chain": {
+                        "type": "value",
+                        "value": chain
+                    },
+                    "number_of_days": {
+                        "type": "value",
+                        "value": "7"
+                    },
+                    "limit": {
+                        "type": "value",
+                        "value": "20"
+                    },
+                    "offset": {
+                        "type": "value",
+                        "value": "0"
+                    }
+                }
+            }
+        },
+        "api_key": luabase_api_key,
+    }
+    headers = {"content-type": "application/json"}
+    response = requests.request("POST", url, json=payload, headers=headers)
+    data = response.json() 
+    print (data)
+    return data["data"]
+
 
 async def topERC20(luabase_api_key, chain, limit, offset, number_of_days):
     url = "https://q.luabase.com/run"
