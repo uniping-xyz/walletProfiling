@@ -81,7 +81,7 @@ async def find_tags(request):
 
     r = re.compile(query)
 
-    data = await tags_cache_validity(request.app, request.app.config.CACHING_TTL['LEVEL_THREE'])
+    data = await tags_cache_validity(request.app, request.app.config.CACHING_TTL['LEVEL_EIGHT'])
     result = list(filter(r.match, data)) # Read Note below
 
     return Response.success_response(data=result)
@@ -99,11 +99,10 @@ async def find_tagged_contracts(request):
     if request.app.config.CACHING:
 
         cache_valid = await cache_validity(request.app.config.REDIS_CLIENT, caching_key, 
-                            request.app.config.CACHING_TTL['LEVEL_THREE'])
+                            request.app.config.CACHING_TTL['LEVEL_EIGHT'])
         if not cache_valid:
             result = await get_tagged_ethereum_contracts(request.app.config.LUABASE_API_KEY, request.args.get("tag"))
-            await set_cache(request.app.config.REDIS_CLIENT, caching_key, result, 
-                    request.app.config.CACHING_TTL['LEVEL_THREE'])
+            await set_cache(request.app.config.REDIS_CLIENT, caching_key, result)
 
         result= await get_cache(request.app.config.REDIS_CLIENT, caching_key)
     else:
@@ -117,7 +116,7 @@ async def tags_cache_validity(app: object, cache_validity_hours: int) -> object:
         tags_cache_validity  = await cache_validity(app.config.REDIS_CLIENT, f"{chain}/tags", cache_validity_hours)
         if not tags_cache_validity:
             eth_tags = await get_ethereum_tags(app.config.LUABASE_API_KEY)
-            await set_cache(app.config.REDIS_CLIENT, f"{chain}/tags", [e["label"] for e in eth_tags], cache_validity_hours)
+            await set_cache(app.config.REDIS_CLIENT, f"{chain}/tags", [e["label"] for e in eth_tags])
             return [e["label"] for e in eth_tags]
     data = await get_cache(app.config.REDIS_CLIENT,f"{chain}/tags")
     return json.loads(data)

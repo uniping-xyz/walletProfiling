@@ -79,27 +79,12 @@ async def after_server_start(app, loop):
 
     
     app.config.REDIS_CLIENT = redis.client()
-    ethereum_tags_cache_validity  = await cache_validity(app.config.REDIS_CLIENT, "ethereum-tags", 24)
-    if not ethereum_tags_cache_validity:
-        eth_tags = await get_ethereum_tags(app.config.LUABASE_API_KEY)
-        await set_cache(app.config.REDIS_CLIENT, "ethereum-tags", [e["label"] for e in eth_tags], 24)
-
-    # async with app.config.REDIS_CLIENT as conn:
-    #     await conn.hdel("ethereum-tags", *["expiry", "data"])
-    #     last_cache = await conn.hget("ethereum-tags", "expiry")
-    #     now = (datetime.datetime.now() + datetime.timedelta(hours=24)).strftime("%s")
-    #     if last_cache and int(now)  > int(last_cache):
-
-    #         logger.info("Its more than 24 hours since tags were fetched from the API, Fetching them again")
-    #         print (eth_tags)
-    #         app.config.tags.update({"ethereum": [e["label"] for e in eth_tags]})
-    #         await conn.hset("ethereum-tags", "data", json.dumps([e["label"] for e in eth_tags]))
-    #         await conn.hset("ethereum-tags", "expiry", now)
-    #     else:
-    #         logger.info("Still valid cache for tags, Using from redis cache")
-    #         ethereum_tags = await conn.hget("ethereum-tags", "data")
-    #         app.config.tags.update({"ethereum": json.loads(ethereum_tags)})
-        
+    for cache_lvls in app.config.CACHING_TTL:
+        cache_value = app.config.CACHING_TTL[cache_lvls]
+        if cache_value < 3600:
+            print(f'{cache_lvls} = {int(app.config.CACHING_TTL[cache_lvls]/60)} Minutes ')
+        else:
+            print(f'{cache_lvls} = {int(app.config.CACHING_TTL[cache_lvls]/3600)} Hours')
 
     return
 
@@ -131,5 +116,5 @@ if __name__ == "__main__":
         print(f"/{route.path:60} - {route.name:70} -  {route.methods} [{route.router}]")
     logger.info("Get the swagger doucmentation at /swagger")
 
-    
+
     app.run(host="0.0.0.0", port=8001, workers=1, auto_reload=True, access_log=False,  reload_dir="./config")
