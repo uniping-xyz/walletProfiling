@@ -11,7 +11,6 @@ from caching.cache_utils import cache_validity, get_cache, set_cache, delete_cac
 
 MOST_POPULAR_BP = Blueprint("most_popular", url_prefix='/most_popular/tokens', version=1)
 
-
 """
 This is the live view  {{home}}.all_time_erc20_live_view and it runs daily
 
@@ -33,9 +32,7 @@ with_names as (
   on lower(tt.token_address) = lower(pp.address)
 )
 select * from with_names
-
 The query that fetches contracts from this live view is this
-
 """
 
 async def all_time_top_erc20(luabase_api_key, chain, limit, offset, number_of_days):
