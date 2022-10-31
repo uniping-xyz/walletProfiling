@@ -1,0 +1,153 @@
+from symtable import Symbol
+from sanic import Blueprint
+import datetime
+from loguru import logger
+import requests
+from utils.utils import Response
+from utils.authorization import authorized, authorized_optional
+from utils.errors import CustomError
+import datetime
+import json
+import aiohttp
+from google.cloud import bigquery
+import re
+CMN_ADDR_DIFF_TKNS = Blueprint("cmn_addr_diff_tkns", url_prefix='/cmn_addr_diff_tkns', version=1)
+
+"""
+    SELECT wallet_address, Max(last_transacted) as last_transacted, count(*) AS c
+            FROM `pingboxproduction.Address.eth_token_interaction_partitioned`
+            WHERE  token_address = "0x1f9840a85d5af5bf1d1762f925bdaddc4201f984" or token_address='0x6b3595068778dd592e39a122f4f5a5cf09c90fe2' or token_address = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+               AND  last_transacted  BETWEEN "2022-09-15" and "2022-09-18" 
+            group by wallet_address
+            having c = 3
+"""
+
+@CMN_ADDR_DIFF_TKNS.get('token_data')
+#@authorized
+async def token_data(request):
+    #amafans_channel_object = request.app.config.amafans_channel_object
+    if not request.args.get("limit"):
+        limit = 100
+    else:
+        limit =  request.args.get("limit")
+
+    if not request.args.get("offset"):
+        offset = 0
+    else:
+        offset = request.args.get("offset")
+
+
+
+    if not request.args.get("token_addresses") :
+        raise CustomError("token_addresses is required ")
+
+    if not request.args.get("chain") or  request.args.get("chain") not in ["ethereum", "polygon"]:
+        raise CustomError("Chain is required and should be either ethereum or polygon")
+
+    if request.args.get("chain") ==  "polygon":
+        query = f"""
+            SELECT wallet_address, balance, Max(last_transacted) as last_transacted, count(*) AS c
+            FROM `{request.app.config.bq_polygon_table}`
+            """        
+    else:
+        query = f"""
+            SELECT wallet_address, balance, Max(last_transacted) as last_transacted, count(*) AS c
+            FROM `{request.app.config.bq_eth_table}`
+            """
+
+    token_addresses = [addr.replace(" ", "") for addr in request.args.get("token_addresses").split(",")]
+
+    and_statement = ""
+    for (index, token_address) in enumerate(token_addresses):
+        _token_address = token_address.lower()
+        if index == 0:
+            and_statement += f"WHERE token_address='{_token_address}' "
+        else:
+            and_statement += f"OR token_address='{_token_address}' "
+
+    query += and_statement
+    if not request.args.get("from_date") or not request.args.get("to_date"):
+        raise CustomError("from_date and to_date params are required")
+    from_date = request.args.get('from_date')
+    to_date = request.args.get('to_date')
+
+    if from_date > to_date:
+        raise CustomError("Invalid date range")
+
+    datetime.datetime.strptime(from_date,"%Y-%m-%d")
+    datetime.datetime.strptime(to_date,"%Y-%m-%d")
+
+    query +=  f"""AND last_transacted  
+                BETWEEN '{from_date}' and '{to_date}'
+                """
+
+    query += f""" group by wallet_address, balance
+                having c = {len(token_addresses)}
+                order by balance desc
+                LIMIT {limit}
+                OFFSET {offset}"""
+    
+    # # _query = json.dumps(query)
+    print (query)
+
+    client = bigquery.Client()
+    results = client.query(query)
+    result = []
+    for row in results.result():
+        # if request.args.get("chain") ==  "ethereum":
+        #     document = await request.app.config.TOKENS.find_one({"ethereum": row['token_address']})
+        # else:
+        #     document = await request.app.config.TOKENS.find_one({"polygon": row['token_address']})
+        # if document:
+        #     name = document.get("name")
+        #     symbol = document.get("symbol")
+        # else:
+        #     name = row["name"]
+        #     symbol = row["symbol"]
+        result.append({
+                "wallet_address": row['wallet_address'],
+                "last_transacted": row['last_transacted'].strftime("%s"),
+                # "name": name,
+                # "symbol": symbol
+        })
+    logger.success(f"Length of the result returned is {len(result)}")
+    await request.app.config.QUERIES.insert_one({"query": query, "result_length": len(result), "result": result })
+    sorted_result = sorted(result,  key=lambda d: d['last_transacted'], reverse=True
+    )
+    return Response.success_response(data=sorted_result)
+
+
+# @FIND_ADDRESSES_BP.get('wallet_data')
+# #@authorized
+# async def token_data(request):
+#     #amafans_channel_object = request.app.config.amafans_channel_object
+#     wallet_address = request.args.get('wallet_address')
+#     if not request.args.get("wallet_address") :
+#         raise CustomError("wallet_address  is required")
+
+#     if not request.args.get("chain") or  request.args.get("chain") not in ["ethereum", "polygon"]:
+#         raise CustomError("Chain is required and should be either ethereum or polygon")
+
+#     if request.args.get("chain") ==  "polygon":
+#         query = f"""
+#             SELECT *
+#             FROM `{request.app.config.bq_polygon_table}`
+#             """        
+#     else:
+#         query = f"""
+#             SELECT *
+#             FROM `{request.app.config.bq_eth_table}`
+#             """
+
+
+#     and_statement = f'WHERE wallet_address="{wallet_address}" '
+
+#     query += and_statement
+#     client = bigquery.Client()
+#     print (query)
+
+#     return Response.success_response(data=query)
+
+
+
+

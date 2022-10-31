@@ -11,7 +11,55 @@ from caching.cache_utils import cache_validity, get_cache, set_cache, delete_cac
 
 TOKEN_HOLDERS_BP = Blueprint("holders", url_prefix='/holders/', version=1)
 
+"""
+WITH genesis AS (
+  SELECT *
+  FROM
+    ethereum.contracts
+  WHERE
+    address = LOWER('{{contract_address}}')
+  LIMIT 1),
 
+wallet_balances AS (
+      SELECT
+        toInt64(1) AS value,
+        block_timestamp,
+        to AS address
+      FROM
+        ethereum.nft_transfers
+      WHERE
+        standard = 'erc1155'
+        AND DATE(block_timestamp)  >= DATE((SELECT block_timestamp FROM genesis))
+        AND contract_address =  LOWER('{{contract_address}}')
+        AND to is not null
+
+      UNION ALL
+      SELECT
+        -toInt64(1) AS value,
+        block_timestamp,
+        from AS address
+      FROM
+       ethereum.nft_transfers
+      WHERE
+        standard = 'erc1155'
+        AND DATE(block_timestamp)  >= DATE((SELECT block_timestamp FROM genesis))
+        AND contract_address =  LOWER('{{contract_address}}')
+        AND from is not null
+),
+
+aggregated_wallet_balances AS (
+   SELECT
+      address,
+      SUM(value) AS balance
+  from wallet_balances
+  group by  address
+)
+
+select * from aggregated_wallet_balances
+order by balance desc
+limit {{limit}}
+offset {{offset}}
+"""
 
 async def holders_ERC20(luabase_api_key, contract_address, limit, offset):
     url = "https://q.luabase.com/run"

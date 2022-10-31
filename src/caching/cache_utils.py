@@ -21,7 +21,7 @@ async def cache_validity(redis_client: object, key: str, cache_expiry_in_secs: i
             logger.warning(f"CACHE MISS: Cache for key=[{key}] expired {int(now) - int(cache_expiry)} seconds ago ")
             return False
 
-        logger.info(f"CACHE HIT: Cache for key=[{key}] will expire in {int(cache_expiry) - int(now)} seconds")        
+        logger.success(f"CACHE HIT: Cache for key=[{key}] will expire in {int(cache_expiry) - int(now)} seconds")        
         return True
 
 async def get_cache(redis_client: object, key: str) -> str:

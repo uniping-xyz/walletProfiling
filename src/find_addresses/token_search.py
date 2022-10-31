@@ -188,9 +188,8 @@ async def search_contract_erc20_transfers(session, luabase_api_key, contract_add
         },
         "api_key": luabase_api_key,
     }
-        
-    headers = {"content-type": "application/json"}
 
+    headers = {"content-type": "application/json"}
     async with session.post(url, json=payload, headers=headers) as response:
         data =  await response.json()
 

@@ -10,12 +10,14 @@ from redis import asyncio as aioredis
 import asyncio, datetime
 import os
 import multiprocessing
-from find_addresses.api import FIND_ADDRESSES_BP
+from find_addresses.common_address_different_tokens import CMN_ADDR_DIFF_TKNS
 from find_addresses.token_search import  TOKEN_SEARCH_BP
 from find_addresses.top_tokens import MOST_POPULAR_BP
 from find_addresses.token_holders import TOKEN_HOLDERS_BP
 from find_addresses.token_transfers import TOKEN_TRANSFERS_BP
 from find_addresses.contract_tags import TOKEN_TAGS_BP
+from find_addresses.token_stats import TOKEN_STATS_BP
+from find_addresses.user_token_balances import USER_TOKEN_BALANCE_BP
 from caching.cache_utils import cache_validity, set_cache, get_cache
 from sanic_cors import CORS
 
@@ -48,6 +50,28 @@ def load_config():  # pylint: disable=too-many-branches
         raise Exception("Config object couldnt be loaded because of some error")
     
  
+async def create_index_tokens(collection):
+    index_information = await collection.index_information()
+    if not index_information.get("ethereum_index"):
+        logger.success("ethereum_index doesnt exists; creating an index on ethereum on tokens collection")
+        await collection.create_index(
+                'ethereum',
+                unique=False,
+                sparse=True,
+                name='ethereum_index',
+                default_language='english')
+
+    index_information = await collection.index_information()
+    if not index_information.get("polygon_index"):
+        logger.success("polygon_index doesnt exists; creating an index on polygon on tokens collection")
+        await collection.create_index(
+                'polygon',
+                unique=False,
+                sparse=True,
+                name='polygon_index',
+                default_language='english')
+
+
 
 
 async def db_connection():
@@ -58,6 +82,9 @@ async def db_connection():
     db = connection[db_config["dbname"]]
     app.config.TOKENS = db["tokens"]
     app.config.QUERIES = db["queries"]
+    logger.success(f"Total tokens in DB  {await app.config.TOKENS.count_documents({})}")
+
+    await create_index_tokens( app.config.TOKENS)
 
     logger.success(f"Mongodb connection established {db}")
     return
@@ -104,12 +131,14 @@ if __name__ == "__main__":
 
 
     APP_BP = Blueprint.group(
-                            FIND_ADDRESSES_BP,
+                            CMN_ADDR_DIFF_TKNS,
                             TOKEN_SEARCH_BP,
                             MOST_POPULAR_BP,
                             TOKEN_HOLDERS_BP,
                             TOKEN_TRANSFERS_BP,
                             TOKEN_TAGS_BP,
+                            TOKEN_STATS_BP,
+                            USER_TOKEN_BALANCE_BP,
                             url_prefix='/api')
     app.blueprint(APP_BP)
     for route in app.router.routes:
