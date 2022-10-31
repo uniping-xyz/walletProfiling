@@ -2,12 +2,12 @@ version: '3.3'
 
 #https://www.digitalocean.com/community/tutorials/how-to-set-up-flask-with-mongodb-and-docker
 services:
-    mongodb-server:
+    walletProfiling-mongodb-server:
         build:
             context: DockerFiles/mongo
             dockerfile: DockerFile
         image: mongodb-server
-        container_name: mongodb-server
+        container_name: walletProfiling-mongodb-server
         command: mongod --auth --quiet
         logging:
             driver: "none"
@@ -24,14 +24,15 @@ services:
         expose:
             - 27017
         volumes:
-          - /home/ubuntu/data/devmongodata:/data/db
+          - ./data/devmongodata:/data/db
         restart: on-failure
 
-    cache:
+    walletProfiling-rediscache-server:
         image: redis:6.2-alpine
+        container_name: walletProfiling-rediscache-server
         restart: always
         ports:
           - 6379:6379
         command: redis-server --save 20 1 --loglevel warning
         volumes:
-          - /home/ubuntu/data/redisdata:/data
+          - ./data/redisdata:/data
