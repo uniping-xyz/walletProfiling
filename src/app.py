@@ -104,7 +104,6 @@ async def after_server_start(app, loop):
         "redis://localhost", encoding="utf-8", decode_responses=True
     )
 
-    
     app.config.REDIS_CLIENT = redis.client()
     for cache_lvls in app.config.CACHING_TTL:
         cache_value = app.config.CACHING_TTL[cache_lvls]

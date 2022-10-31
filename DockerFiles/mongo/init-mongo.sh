@@ -7,7 +7,9 @@ mongo -- "$MONGO_INITDB_DATABASE" <<EOF
   var rootPassword = '$MONGO_INITDB_ROOT_PASSWORD';
   var user = '$MONGO_INITDB_USERNAME';
   var passwd = '$MONGO_INITDB_PASSWORD';
+  var db = '$MONGO_INITDB_DATABASE';
   var admin = db.getSiblingDB('admin');
+
   admin.auth(rootUser, rootPassword);
   db.createUser({
     user: user,
@@ -15,7 +17,7 @@ mongo -- "$MONGO_INITDB_DATABASE" <<EOF
     roles: [
       {
         role: "root",
-        db: "admin"
+        db: db
       }
     ]
   });
