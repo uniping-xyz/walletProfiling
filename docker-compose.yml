@@ -1,0 +1,37 @@
+version: '3.3'
+
+#https://www.digitalocean.com/community/tutorials/how-to-set-up-flask-with-mongodb-and-docker
+services:
+    mongodb-server:
+        build:
+            context: DockerFiles/mongo
+            dockerfile: DockerFile
+        image: mongodb-server
+        container_name: mongodb-server
+        command: mongod --auth --quiet
+        logging:
+            driver: "none"
+        environment:
+          - MONGO_INITDB_ROOT_USERNAME=root
+          - MONGO_INITDB_ROOT_PASSWORD=44ddd80f415546df9dc2c67d98eed5a8
+          - MONGO_INITDB_USERNAME=adminuser
+          - MONGO_INITDB_PASSWORD=venice556
+          - MONGO_INITDB_DATABASE=app_db
+          - MONGODB_DISABLE_SYSTEM_LOG=false
+        ports:
+          - 8012:27017
+
+        expose:
+            - 27017
+        volumes:
+          - /home/ubuntu/data/devmongodata:/data/db
+        restart: on-failure
+
+    cache:
+        image: redis:6.2-alpine
+        restart: always
+        ports:
+          - 6379:6379
+        command: redis-server --save 20 1 --loglevel warning
+        volumes:
+          - /home/ubuntu/data/redisdata:/data
