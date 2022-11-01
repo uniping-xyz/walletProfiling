@@ -11,55 +11,7 @@ from caching.cache_utils import cache_validity, get_cache, set_cache, delete_cac
 
 TOKEN_HOLDERS_BP = Blueprint("holders", url_prefix='/holders/', version=1)
 
-"""
-WITH genesis AS (
-  SELECT *
-  FROM
-    ethereum.contracts
-  WHERE
-    address = LOWER('{{contract_address}}')
-  LIMIT 1),
 
-wallet_balances AS (
-      SELECT
-        toInt64(1) AS value,
-        block_timestamp,
-        to AS address
-      FROM
-        ethereum.nft_transfers
-      WHERE
-        standard = 'erc1155'
-        AND DATE(block_timestamp)  >= DATE((SELECT block_timestamp FROM genesis))
-        AND contract_address =  LOWER('{{contract_address}}')
-        AND to is not null
-
-      UNION ALL
-      SELECT
-        -toInt64(1) AS value,
-        block_timestamp,
-        from AS address
-      FROM
-       ethereum.nft_transfers
-      WHERE
-        standard = 'erc1155'
-        AND DATE(block_timestamp)  >= DATE((SELECT block_timestamp FROM genesis))
-        AND contract_address =  LOWER('{{contract_address}}')
-        AND from is not null
-),
-
-aggregated_wallet_balances AS (
-   SELECT
-      address,
-      SUM(value) AS balance
-  from wallet_balances
-  group by  address
-)
-
-select * from aggregated_wallet_balances
-order by balance desc
-limit {{limit}}
-offset {{offset}}
-"""
 
 async def holders_ERC20(luabase_api_key, contract_address, limit, offset):
     url = "https://q.luabase.com/run"
@@ -137,38 +89,38 @@ async def holders_ERC721(luabase_api_key, contract_address, limit, offset):
     url = "https://q.luabase.com/run"
 
     payload = {
-    "block": {
-        "data_uuid": "608865f109864114a75ad41f222e0ee3",
-        "details": {
-            "limit": 2000,
-            "parameters": {
-                "limit": {
-                    "type": "value",
-                    "value": str(limit)
-                },
-                "offset": {
-                    "type": "value",
-                    "value": str(offset)
-                },
-                "contract_address": {
-                    "type": "value",
-                    "value": contract_address.lower()
+        "block": {
+            "data_uuid": "184517a47f5546a2b0f86ef91104e1db",
+            "details": {
+                "limit": 2000,
+                "parameters": {
+                    "contract_address": {
+                        "type": "value",
+                        "value": contract_address.lower()
+                    },
+                    "limit": {
+                        "type": "value",
+                        "value": str(limit)
+                    },
+                    "offset": {
+                        "type": "value",
+                        "value": str(offset)
+                    }
                 }
             }
-        }
-    },
-    "api_key": luabase_api_key,
+        },
+        "api_key": luabase_api_key,
     }
 
     headers = {"content-type": "application/json"}
-    async with aiohttp.ClientSession() as session:
-        async with session.post(url, json=payload, headers=headers) as resp:
-            data  = await resp.json()
+    # async with aiohttp.ClientSession() as session:
+    #     async with session.post(url, json=payload, headers=headers) as resp:
+    #         data  = await resp.json()
 
 
-    # headers = {"content-type": "application/json"}
-    # response = requests.request("POST", url, json=payload, headers=headers)
-    # data = response.json()
+    headers = {"content-type": "application/json"}
+    response = requests.request("POST", url, json=payload, headers=headers)
+    data = response.json()
     print (data)
     return data["data"]
 
