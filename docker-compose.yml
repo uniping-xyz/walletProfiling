@@ -3,6 +3,8 @@ version: '3.3'
 #https://www.digitalocean.com/community/tutorials/how-to-set-up-flask-with-mongodb-and-docker
 services:
     walletProfiling-mongodb-server:
+        env_file:
+          - ./src/config/wallet-profile-mongo.env
         build:
             context: DockerFiles/mongo
             dockerfile: DockerFile
@@ -11,13 +13,6 @@ services:
         command: mongod --auth --quiet
         logging:
             driver: "none"
-        environment:
-          - MONGO_INITDB_ROOT_USERNAME=root
-          - MONGO_INITDB_ROOT_PASSWORD=44ddd80f415546df9dc2c67d98eed5a8
-          - MONGO_INITDB_USERNAME=walletProfileUser
-          - MONGO_INITDB_PASSWORD=venice556
-          - MONGO_INITDB_DATABASE=walletProfileDB
-          - MONGODB_DISABLE_SYSTEM_LOG=false
         ports:
           - 8012:27017
         expose:

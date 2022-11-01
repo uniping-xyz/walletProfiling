@@ -89,7 +89,6 @@ async def db_connection():
     logger.success(f"Mongodb connection established {db}")
     return
 
-
 @app.after_server_start
 async def after_server_start(app, loop):
     load_config()
