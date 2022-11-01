@@ -103,8 +103,9 @@ async def find_tagged_contracts(request):
         if not cache_valid:
             result = await get_tagged_ethereum_contracts(request.app.config.LUABASE_API_KEY, request.args.get("tag"))
             await set_cache(request.app.config.REDIS_CLIENT, caching_key, result)
-
-        result= await get_cache(request.app.config.REDIS_CLIENT, caching_key)
+            return result
+        cached_result= await get_cache(request.app.config.REDIS_CLIENT, caching_key)
+        return json.loads(cached_result)
     else:
         result = await get_tagged_ethereum_contracts(request.app.config.LUABASE_API_KEY, request.args.get("tag"))
     return Response.success_response(data=result)

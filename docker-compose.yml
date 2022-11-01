@@ -14,9 +14,9 @@ services:
         environment:
           - MONGO_INITDB_ROOT_USERNAME=root
           - MONGO_INITDB_ROOT_PASSWORD=44ddd80f415546df9dc2c67d98eed5a8
-          - MONGO_INITDB_USERNAME=adminuser
+          - MONGO_INITDB_USERNAME=walletProfileUser
           - MONGO_INITDB_PASSWORD=venice556
-          - MONGO_INITDB_DATABASE=app_db
+          - MONGO_INITDB_DATABASE=walletProfileDB
           - MONGODB_DISABLE_SYSTEM_LOG=false
         ports:
           - 8012:27017

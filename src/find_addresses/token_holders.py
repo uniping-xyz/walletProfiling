@@ -86,9 +86,12 @@ async def holders_ERC20(luabase_api_key, contract_address, limit, offset):
         },
         "api_key": luabase_api_key,
     }
+
     headers = {"content-type": "application/json"}
-    response = requests.request("POST", url, json=payload, headers=headers)
-    data = response.json() 
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, json=payload, headers=headers) as resp:
+            data  = await resp.json()
+
     print (data)
     return data["data"]
 
@@ -118,10 +121,15 @@ async def holders_ERC1155(luabase_api_key, contract_address, limit, offset):
         },
         "api_key": luabase_api_key,
     }
-
     headers = {"content-type": "application/json"}
-    response = requests.request("POST", url, json=payload, headers=headers)
-    data = response.json()
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, json=payload, headers=headers) as resp:
+            data  = await resp.json()
+
+
+    # headers = {"content-type": "application/json"}
+    # response = requests.request("POST", url, json=payload, headers=headers)
+    # data = response.json()
     print (data)
     return data["data"]
 
@@ -153,8 +161,14 @@ async def holders_ERC721(luabase_api_key, contract_address, limit, offset):
     }
 
     headers = {"content-type": "application/json"}
-    response = requests.request("POST", url, json=payload, headers=headers)
-    data = response.json()
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, json=payload, headers=headers) as resp:
+            data  = await resp.json()
+
+
+    # headers = {"content-type": "application/json"}
+    # response = requests.request("POST", url, json=payload, headers=headers)
+    # data = response.json()
     print (data)
     return data["data"]
 

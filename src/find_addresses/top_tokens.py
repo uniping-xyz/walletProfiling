@@ -101,8 +101,9 @@ async def topERC20(luabase_api_key, chain, limit, offset, number_of_days):
         "api_key": luabase_api_key,
     }
     headers = {"content-type": "application/json"}
-    response = requests.request("POST", url, json=payload, headers=headers)
-    data = response.json() 
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, json=payload, headers=headers) as resp:
+            data  = await resp.json() 
     print (data)
     return data["data"]
 
@@ -143,8 +144,9 @@ async def topERC1155(luabase_api_key, chain, limit, offset, number_of_days):
     }
 
     headers = {"content-type": "application/json"}
-    response = requests.request("POST", url, json=payload, headers=headers)
-    data = response.json()
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, json=payload, headers=headers) as resp:
+            data  = await resp.json()
     print (data)
     return data["data"]
 
@@ -185,8 +187,9 @@ async def topERC721(luabase_api_key, chain, limit, offset, number_of_days):
     }
 
     headers = {"content-type": "application/json"}
-    response = requests.request("POST", url, json=payload, headers=headers)
-    data = response.json()
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, json=payload, headers=headers) as resp:
+            data  = await resp.json()
     return data["data"]
 
 def make_query_string(request_args: dict) -> str:
