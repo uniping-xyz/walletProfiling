@@ -12,3 +12,4 @@ share/
 images/*
 *.png
 config.json
+config/*

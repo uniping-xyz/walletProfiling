@@ -29,8 +29,9 @@ async def get_ethereum_tags(lubabase_api_key):
     }
     }
     headers = {"content-type": "application/json"}
-    response = requests.request("POST", url, json=payload, headers=headers)
-    data = response.json() 
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, json=payload, headers=headers) as resp:
+            data  = await resp.json()
     return data["data"]
 
 
@@ -53,9 +54,11 @@ async def get_tagged_ethereum_contracts(luabase_api_key, tag):
     "api_key": luabase_api_key
     }
     headers = {"content-type": "application/json"}
-    response = requests.request("POST", url, json=payload, headers=headers)
-    data = response.json()
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, json=payload, headers=headers) as resp:
+            data  = await resp.json()
     return data["data"]
+
 
 async def tags_cache_validity(app: object, cache_validity_hours: int) -> object:
     for chain in app.config.SUPPORTED_CHAINS:
@@ -105,12 +108,10 @@ async def find_tagged_contracts(request):
             await set_cache(request.app.config.REDIS_CLIENT, caching_key, result)
             return result
         cached_result= await get_cache(request.app.config.REDIS_CLIENT, caching_key)
-        return json.loads(cached_result)
+        result =  json.loads(cached_result)
     else:
         result = await get_tagged_ethereum_contracts(request.app.config.LUABASE_API_KEY, request.args.get("tag"))
     return Response.success_response(data=result)
-
-
 
 async def tags_cache_validity(app: object, cache_validity_hours: int) -> object:
     for chain in app.config.SUPPORTED_CHAINS:
