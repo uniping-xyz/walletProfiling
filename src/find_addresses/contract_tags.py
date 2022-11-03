@@ -60,14 +60,14 @@ async def get_tagged_ethereum_contracts(luabase_api_key, tag):
     return data["data"]
 
 
-async def tags_cache_validity(app: object, cache_validity_hours: int) -> object:
-    for chain in app.config.SUPPORTED_CHAINS:
-        tags_cache_validity  = await cache_validity(app.config.REDIS_CLIENT, f"{chain}-tags", cache_validity_hours)
-        if not tags_cache_validity:
-            eth_tags = await get_ethereum_tags(app.config.LUABASE_API_KEY)
-            await set_cache(app.config.REDIS_CLIENT, f"{chain}-tags", [e["label"] for e in eth_tags], cache_validity_hours)
-            return [e["label"] for e in eth_tags]
-    data = await get_cache(app.config.REDIS_CLIENT,f"{chain}-tags")
+async def tags_cache_validity(app: object, caching_key: str, request_args: dict)-> object:
+    CACHE_EXPIRY = app.config.CACHING_TTL['LEVEL_ONE']
+    tags_cache_validity  = await cache_validity(app.config.REDIS_CLIENT, caching_key, CACHE_EXPIRY)
+    if not tags_cache_validity:
+        eth_tags = await get_ethereum_tags(app.config.LUABASE_API_KEY)
+        await set_cache(app.config.REDIS_CLIENT, caching_key, [e["label"] for e in eth_tags])
+        return [e["label"] for e in eth_tags]
+    data = await get_cache(app.config.REDIS_CLIENT,caching_key)
     return json.loads(data)
 
 
@@ -83,11 +83,20 @@ async def find_tags(request):
         query = f".*{request.args.get('query')}"
     else:
         query = f".*"
-
+    request.args["tag"] = True #this is just to make keys unique in redis
 
     r = re.compile(query)
 
-    data = await tags_cache_validity(request.app, request.app.config.CACHING_TTL['LEVEL_EIGHT'])
+    query_string: str = make_query_string(request.args, ["chain", "tag"])
+
+    caching_key = f"{request.route.path}?{request.query_string}"
+    if request.app.config.CACHING:
+        caching_key = f"{request.route.path}?{query_string}"
+        logger.info(f"Here is the caching key {caching_key}")
+        data = await tags_cache_validity(request.app, caching_key, request.args)
+    else:
+        data = await  get_ethereum_tags(request.app.config.LUABASE_API_KEY)
+
     result = list(filter(r.match, data)) # Read Note below
 
     return Response.success_response(data=result)
