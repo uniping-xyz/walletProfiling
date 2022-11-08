@@ -6,6 +6,7 @@ import aiohttp
 from sanic import Blueprint
 from utils.utils import Response
 from utils.errors import CustomError
+from utils.authorization import is_subscribed
 from loguru import logger
 
 
@@ -117,7 +118,7 @@ async def erc20_transfers(session, luabase_api_key, contract_address, limit, off
 
 
 @TOKEN_TRANSFERS_BP.get('token_transfers')
-#@authorized
+@is_subscribed()
 async def token_transfers(request):
     if request.args.get("chain") not in request.app.config.SUPPORTED_CHAINS:
         raise CustomError("chain not suported")

@@ -5,6 +5,8 @@ import aiohttp
 from sanic import Blueprint
 from utils.utils import Response
 from utils.errors import CustomError
+from utils.authorization import is_subscribed
+
 from loguru import logger
 from google.cloud import bigquery
 from sanic.request import RequestParameters
@@ -27,6 +29,7 @@ def make_query_string(request_args: dict, args_list: list) -> str:
     return query_string[1:] # to remove the first $ sign appened to the string
 
 @USER_TOKEN_BALANCE_BP.get('token_balances')
+@is_subscribed()
 async def token_balances(request):
     wallet_address = request.args.get('wallet_address')
     if not wallet_address:

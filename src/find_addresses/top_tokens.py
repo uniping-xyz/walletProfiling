@@ -6,6 +6,7 @@ from sanic.request import RequestParameters
 from sanic import Blueprint
 from utils.utils import Response
 from utils.errors import CustomError
+from utils.authorization import is_subscribed
 from loguru import logger
 from caching.cache_utils import cache_validity, get_cache, set_cache, delete_cache
 
@@ -67,7 +68,6 @@ async def all_time_top_erc20(luabase_api_key, chain, limit, offset, number_of_da
     headers = {"content-type": "application/json"}
     response = requests.request("POST", url, json=payload, headers=headers)
     data = response.json() 
-    print (data)
     return data["data"]
 
 
@@ -147,7 +147,6 @@ async def topERC1155(luabase_api_key, chain, limit, offset, number_of_days):
     async with aiohttp.ClientSession() as session:
         async with session.post(url, json=payload, headers=headers) as resp:
             data  = await resp.json()
-    print (data)
     return data["data"]
 
 async def topERC721(luabase_api_key, chain, limit, offset, number_of_days):
@@ -201,6 +200,7 @@ def make_query_string(request_args: dict) -> str:
     return query_string[1:] # to remove the first $ sign appened to the string
 
 @MOST_POPULAR_BP.get('most_popular')
+@is_subscribed()
 async def most_popular(request):
     
     if request.args.get("chain") not in request.app.config.SUPPORTED_CHAINS:
@@ -264,7 +264,7 @@ async def fetch_data(app: object, request_args: RequestParameters) -> any:
                         request_args.get("offset"), request_args.get("number_of_days"))
 
     elif request_args.get("erc_type") ==  "ERC721":
-        logger.info("ERC20 token_type")
+        logger.info("ERC721 token_type")
         results = await topERC721(app.config.LUABASE_API_KEY,  
                         request_args.get("chain"), request_args.get("limit"), 
                         request_args.get("offset"), request_args.get("number_of_days"))   

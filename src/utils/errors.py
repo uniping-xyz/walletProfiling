@@ -85,3 +85,7 @@ class CustomError(ApiException):
     def __init__(self, message="This is a custom error", status_code=None):
         super().__init__(message, status_code)
 
+@add_status_code(400)
+class SubscriptionRequiredError(ApiException):
+    def __init__(self, message="subscription is required", status_code=None):
+        super().__init__(message, status_code)

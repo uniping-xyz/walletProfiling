@@ -6,6 +6,7 @@ import aiohttp
 from sanic import Blueprint
 from utils.utils import Response
 from utils.errors import CustomError
+from utils.authorization import is_subscribed
 from loguru import logger
 from sanic.request import RequestParameters
 from .token_holders import holders_ERC1155, holders_ERC20, holders_ERC721
@@ -300,7 +301,7 @@ even if that contract address is a proxy
 Also gives the the top holders of the token
 """
 @TOKEN_SEARCH_BP.get('search_contract_address')
-#@authorized
+@is_subscribed()
 async def search_contract_address(request):
     if  request.args.get("chain") not in request.app.config.SUPPORTED_CHAINS:
         raise CustomError("chain not suported")

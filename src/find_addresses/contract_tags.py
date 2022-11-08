@@ -4,6 +4,7 @@ import asyncio
 import aiohttp
 from sanic import Blueprint
 from utils.utils import Response
+from utils.authorization import is_subscribed
 from utils.errors import CustomError
 from loguru import logger
 import re
@@ -61,7 +62,7 @@ async def get_tagged_ethereum_contracts(luabase_api_key, tag):
 
 
 async def tags_cache_validity(app: object, caching_key: str, request_args: dict)-> object:
-    CACHE_EXPIRY = app.config.CACHING_TTL['LEVEL_ONE']
+    CACHE_EXPIRY = app.config.CACHING_TTL['LEVEL_FIVE']
     tags_cache_validity  = await cache_validity(app.config.REDIS_CLIENT, caching_key, CACHE_EXPIRY)
     if not tags_cache_validity:
         eth_tags = await get_ethereum_tags(app.config.LUABASE_API_KEY)
@@ -70,10 +71,8 @@ async def tags_cache_validity(app: object, caching_key: str, request_args: dict)
     data = await get_cache(app.config.REDIS_CLIENT,caching_key)
     return json.loads(data)
 
-
-
-
 @TOKEN_TAGS_BP.get('find_tags')
+@is_subscribed()
 async def find_tags(request):
 
     if  request.args.get("chain") not in request.app.config.SUPPORTED_CHAINS:
@@ -125,6 +124,7 @@ async def tags_contracts_cache_validity(app: object, caching_key: str, request_a
 
 
 @TOKEN_TAGS_BP.get('find_tagged_contracts')
+@is_subscribed()
 async def find_tagged_contracts(request):
 
     if  request.args.get("chain") not in request.app.config.SUPPORTED_CHAINS:

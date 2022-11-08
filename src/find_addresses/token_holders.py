@@ -5,6 +5,8 @@ import aiohttp
 from sanic import Blueprint
 from utils.utils import Response
 from utils.errors import CustomError
+from utils.authorization import is_subscribed
+
 from loguru import logger
 from sanic.request import RequestParameters
 from caching.cache_utils import cache_validity, get_cache, set_cache, delete_cache
@@ -134,7 +136,7 @@ def make_query_string(request_args: dict) -> str:
     return query_string[1:] # to remove the first $ sign appened to the string
 
 @TOKEN_HOLDERS_BP.get('tokens')
-#@authorized
+@is_subscribed()
 async def token_holders(request):
     if request.args.get("chain") not in request.app.config.SUPPORTED_CHAINS:
         raise CustomError("chain not suported")

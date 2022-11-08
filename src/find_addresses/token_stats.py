@@ -5,6 +5,7 @@ import aiohttp
 from sanic import Blueprint
 from utils.utils import Response
 from utils.errors import CustomError
+from utils.authorization import is_subscribed
 from loguru import logger
 from google.cloud import bigquery
 from sanic.request import RequestParameters
@@ -18,6 +19,7 @@ TOKEN_STATS_BP = Blueprint("stats", url_prefix='/stats', version=1)
 
 #if the contract is not a token
 @TOKEN_STATS_BP.get('contract_stats')
+@is_subscribed()
 async def contract_stats(request):
  
     raise CustomError("Not implemented yet")
@@ -54,7 +56,7 @@ ORDER BY
 """
 
 @TOKEN_STATS_BP.get('token_stats')
-#@authorized
+@is_subscribed()
 async def token_stats(request):
 
     if not request.args.get("token_address") :
@@ -133,7 +135,7 @@ async def fetch_token_stats(app: object, request_args: RequestParameters) -> lis
     return []
 
 @TOKEN_STATS_BP.get('token_stats_average')
-#@authorized
+@is_subscribed()
 async def token_stats_average(request):
     if not request.args.get("token_address") :
         raise CustomError("token_address is required ")

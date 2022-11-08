@@ -16,6 +16,16 @@ from bson.decimal128 import Decimal128
 import json
 w3 = web3.Web3()
 
+def current_timestamp():
+    current_time = datetime.datetime.now(datetime.timezone.utc)
+    unix_timestamp = current_time.timestamp() # works if Python >= 3.3
+    return unix_timestamp
+
+
+def future_timestamp(minutes: int):
+    timestamp = current_timestamp()
+    future_timestamp = timestamp + (minutes * 60)  # 5 min * 60 second
+    return future_timestamp
 
 
 def wrap(func):

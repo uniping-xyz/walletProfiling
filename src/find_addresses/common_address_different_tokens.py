@@ -4,7 +4,7 @@ import datetime
 from loguru import logger
 import requests
 from utils.utils import Response
-from utils.authorization import authorized, authorized_optional
+from utils.authorization import is_subscribed
 from utils.errors import CustomError
 import datetime
 import json
@@ -23,7 +23,7 @@ CMN_ADDR_DIFF_TKNS = Blueprint("cmn_addr_diff_tkns", url_prefix='/cmn_addr_diff_
 """
 
 @CMN_ADDR_DIFF_TKNS.get('token_data')
-#@authorized
+@is_subscribed()
 async def token_data(request):
     #amafans_channel_object = request.app.config.amafans_channel_object
     if not request.args.get("limit"):
