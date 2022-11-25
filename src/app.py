@@ -45,26 +45,6 @@ async def load_config():  # pylint: disable=too-many-branches
         raise Exception("Config object couldnt be loaded because of some error")
     return 
  
-async def create_index_tokens(collection):
-    index_information = await collection.index_information()
-    if not index_information.get("ethereum_index"):
-        logger.success("ethereum_index doesnt exists; creating an index on ethereum on tokens collection")
-        await collection.create_index(
-                'ethereum',
-                unique=False,
-                sparse=True,
-                name='ethereum_index',
-                default_language='english')
-
-    index_information = await collection.index_information()
-    if not index_information.get("polygon_index"):
-        logger.success("polygon_index doesnt exists; creating an index on polygon on tokens collection")
-        await collection.create_index(
-                'polygon',
-                unique=False,
-                sparse=True,
-                name='polygon_index',
-                default_language='english')
 
 
 
@@ -108,16 +88,35 @@ async def load_db_secrets():
     app.config.QUERIES = db["queries"]
     app.config.ETH_ERC721_TOKENS = db["eth_erc721_tokens"]
     app.config.ETH_ERC1155_TOKENS = db["eth_erc1155_tokens"]
-    app.config.ETH_ERC20_TOKENS = db["eth_erc20_tokens"]
 
 
     
     logger.success(f"Total tokens in DB  {await app.config.TOKENS.count_documents({})}")
 
-    await create_index_tokens( app.config.TOKENS)
+
+    await create_index(app.config.TOKENS, "ethereum")
+    await create_index(app.config.TOKENS, "tokens")
+
+    await create_index(app.config.ETH_ERC721_TOKENS, "tokens")
+    await create_index(app.config.ETH_ERC721_TOKENS, "contracts")
+    await create_index(app.config.ETH_ERC1155_TOKENS, "tokens")
+    await create_index(app.config.ETH_ERC1155_TOKENS, "contracts")
+
 
     logger.success(f"Mongodb connection established {db}")
     return
+
+async def create_index(collection, field):
+    index_information = await collection.index_information()
+    if not index_information.get(f"{field}_index"):
+        logger.success(f"{field}_index doesnt exists; creating an index on collection")
+        await collection.create_index(
+                field,
+                unique=False,
+                sparse=True,
+                name=f"{field}_index",
+                default_language='english')
+
 
 
 @app.after_server_start

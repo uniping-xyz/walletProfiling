@@ -13,3 +13,5 @@ images/*
 *.png
 config.json
 config/*
+data/*
+*.env

@@ -35,7 +35,7 @@ def make_query_string(request_args: dict, args_list: list) -> str:
 async def populate_tokens(request):
 
     await asyncio.gather(*[populate_erc721_blockdaemon(request.app),
-        # populate_erc1155_blockdaemon(request.app)
+        populate_erc1155_blockdaemon(request.app)
         ])
     return Response.success_response(data={})
 
