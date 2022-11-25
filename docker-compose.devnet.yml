@@ -1,0 +1,35 @@
+version: '3.3'
+
+#https://www.digitalocean.com/community/tutorials/how-to-set-up-flask-with-mongodb-and-docker
+services:
+    wallet-profile-mongodb-server:
+        env_file:
+          - ./src/config/devnet/db_secrets.env
+          - ./src/config/devnet/app_secrets.env
+        volumes:
+          - ./data/mongo:/data/db
+        ports:
+          - 8012:27017
+
+    wallet-profile-app-server:
+        env_file:
+          - ./src/config/devnet/db_secrets.env
+          - ./src/config/devnet/app_secrets.env
+        ports:
+            - 8006:8080
+        expose:
+            - 8006
+        volumes:
+            - ./src:/pythonapp/src:ro
+
+    wallet-profile-rediscache-server:
+        image: redis:6.2-alpine
+        container_name: wallet-profile-rediscache-server
+        restart: always
+        ports:
+          - 6379:6379
+        command: redis-server --save 20 1 --loglevel warning
+        volumes:
+          - ./data/redis:/data
+        networks:
+          - wallet-profile

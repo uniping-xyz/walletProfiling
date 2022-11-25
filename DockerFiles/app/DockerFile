@@ -1,0 +1,27 @@
+from python:3.10-buster as base
+
+FROM base as builder
+RUN mkdir /install
+WORKDIR /install
+ENV PYTHONDONTWRITEBYTECODE 1h   
+ENV PYTHONUNBUFFERED 1
+COPY requirements.txt /requirements.txt
+RUN apt-get update && apt-get install -y --no-install-recommends software-properties-common  python3-dev gcc git  && rm -rf /var/lib/apt/lists/*
+# RUN pip install -r requirements.txt
+RUN pip install --prefix=/install -r /requirements.txt
+ENV PYTHONPATH /install:/install/bin
+
+FROM base
+ENV APP_HOME /pythonapp
+
+RUN mkdir $APP_HOME
+WORKDIR $APP_HOME
+COPY --from=builder /install /usr/local
+COPY --from=builder /requirements.txt .
+RUN apt-get update && apt-get install -y libsodium-dev gcc libsodium23 libpangocairo-1.0-0
+RUN python -m pip install pip==22.2.2
+COPY src $APP_HOME/src
+ENV LC_ALL C.UTF-8
+ENV LANG C.UTF-8
+WORKDIR $APP_HOME/src
+CMD ["python", "app.py"]

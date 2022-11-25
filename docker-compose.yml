@@ -2,33 +2,35 @@ version: '3.3'
 
 #https://www.digitalocean.com/community/tutorials/how-to-set-up-flask-with-mongodb-and-docker
 services:
-    walletProfiling-mongodb-server:
-        env_file:
-          - ./src/config/wallet-profile-mongo.env
+    wallet-profile-mongodb-server:
+
         build:
             context: DockerFiles/mongo
             dockerfile: DockerFile
-        image: mongodb-server
-        container_name: walletProfiling-mongodb-server
+        image: wallet-profile-mongodb-server
+        container_name: wallet-profile-mongodb-server
         command: mongod --auth --quiet
         logging:
             driver: "none"
-        ports:
-          - 8012:27017
-        expose:
-            - 27017
-        volumes:
-          - ./data/devmongodata:/data/db
         restart: on-failure
+        networks:
+          - wallet-profile
+    wallet-profile-app-server:
+        build:
+            context: .
+            dockerfile: DockerFiles/app/DockerFile
+        image: wallet-profile-app-server
+        container_name: wallet-profile-app-server
 
-    walletProfiling-rediscache-server:
-        image: redis:6.2-alpine
-        container_name: walletProfiling-rediscache-server
-        restart: always
-        ports:
-          - 6379:6379
-        expose:
-          - 6379
-        command: redis-server --save 20 1 --loglevel warning
-        volumes:
-          - ./data/redisdata:/data
+        depends_on:
+            - wallet-profile-mongodb-server
+        networks:
+          - wallet-profile
+
+networks:
+  wallet-profile:
+    driver: bridge
+
+volumes:
+    data:
+        driver: local

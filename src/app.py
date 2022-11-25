@@ -15,15 +15,18 @@ from find_addresses.token_transfers import TOKEN_TRANSFERS_BP
 from find_addresses.contract_tags import TOKEN_TAGS_BP
 from find_addresses.token_stats import TOKEN_STATS_BP
 from find_addresses.user_token_balances import USER_TOKEN_BALANCE_BP
+from find_addresses.admin import ADMIN_BP
+from dotenv import load_dotenv, dotenv_values
 
 from sanic_cors import CORS
 
-app = Sanic("Pingbox")
+app = Sanic("uniping")
 CORS(app, automatic_options=True)
 
 
 async def secret():
-    app.config.BRANCA = Branca(key=binascii.unhexlify(app.config[os.environ['APP_ENV']]["SECRET"]))
+    app.config.BRANCA = Branca(key=binascii.unhexlify(os.environ["SECRET"]))
+
     return
 
 def close_connections():
@@ -32,12 +35,11 @@ def close_connections():
 
 
 async def load_config():  # pylint: disable=too-many-branches
+
     with open('./config/config.json', 'r') as f:
         config = json.load(f)
     try:
-        app.config.update(config)
-        app.config.update({"env": os.environ['APP_ENV']})
-        
+        app.config.update(config)        
     except Exception as e:
         print(e)
         raise Exception("Config object couldnt be loaded because of some error")
@@ -67,15 +69,49 @@ async def create_index_tokens(collection):
 
 
 
-async def db_connection():
+# async def load_db_secrets(env_path):
+#     db_dotenv_path = os.path.join(os.path.dirname(__file__), env_path)
+#     config = dotenv_values(db_dotenv_path)
+#     user = config.get("MONGO_INITDB_USERNAME")
+#     password = config.get("MONGO_INITDB_PASSWORD")
+#     ip = config.get("MONGO_IP")
+#     port = config.get("MONGO_PORT")
+#     db_name = config.get("MONGO_INITDB_DATABASE")
+#     uri = f'mongodb://{user}:{password}@{ip}:{port}/{db_name}'
+#     logger.info(f"Mongo URI is {uri}")
+#     connection = AsyncIOMotorClient(uri)
 
-    db_config = app.config[os.environ['APP_ENV']]["DATABASE"]
-    uri = f'mongodb://{db_config["user"]}:{ db_config["password"]}@{db_config["ip"]}:{ db_config["port"]}/{db_config["dbname"]}'
+#     db = connection[db_name]
+#     app.config.TOKENS = db["tokens"]
+#     app.config.QUERIES = db["queries"]
+#     logger.success(f"Total tokens in DB  {await app.config.TOKENS.count_documents({})}")
+
+#     await create_index_tokens( app.config.TOKENS)
+
+#     logger.success(f"Mongodb connection established {db}")
+#     return
+
+
+async def load_db_secrets():
+
+    user = os.environ["MONGO_INITDB_USERNAME"]
+    password = os.environ["MONGO_INITDB_PASSWORD"]
+    ip = os.environ["MONGO_IP"]
+    port = os.environ["MONGO_PORT"]
+    db_name = os.environ["MONGO_INITDB_DATABASE"]
+    uri = f'mongodb://{user}:{password}@{ip}:{port}/{db_name}'
+    logger.info(f"Mongo URI is {uri}")
     connection = AsyncIOMotorClient(uri)
-    db_config = app.config[os.environ['APP_ENV']]["DATABASE"]
-    db = connection[db_config["dbname"]]
+
+    db = connection[db_name]
     app.config.TOKENS = db["tokens"]
     app.config.QUERIES = db["queries"]
+    app.config.ETH_ERC721_TOKENS = db["eth_erc721_tokens"]
+    app.config.ETH_ERC1155_TOKENS = db["eth_erc1155_tokens"]
+    app.config.ETH_ERC20_TOKENS = db["eth_erc20_tokens"]
+
+
+    
     logger.success(f"Total tokens in DB  {await app.config.TOKENS.count_documents({})}")
 
     await create_index_tokens( app.config.TOKENS)
@@ -83,20 +119,22 @@ async def db_connection():
     logger.success(f"Mongodb connection established {db}")
     return
 
+
 @app.after_server_start
 async def after_server_start(app, loop):
+    ENVIRONMENT = os.environ['APP_ENV']
+    await load_db_secrets()
+
     logger.info(f"Config loded")
     await load_config()
     await secret()
-    await db_connection()
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = app.config[os.environ['APP_ENV']]["GOOGLE_CREDS_JSON_PATH"]
-    app.config.bq_polygon_table = app.config[os.environ['APP_ENV']]["BQ_POLYGON_TABLE_NAME"]
-    app.config.bq_eth_table = app.config[os.environ['APP_ENV']]["BQ_ETH_TABLE_NAME"]
-    app.config.WEB3_PROVIDER = app.config[os.environ['APP_ENV']]["WEB3_PROVIDER"]
-    app.config.LUABASE_API_KEY = app.config[os.environ['APP_ENV']]["LUABASE_API_KEY"]
+    app.config.bq_polygon_table = os.environ["BQ_POLYGON_TABLE_NAME"]
+    app.config.bq_eth_table = os.environ["BQ_ETH_TABLE_NAME"]
+    app.config.WEB3_PROVIDER = os.environ["WEB3_PROVIDER"]
+    app.config.LUABASE_API_KEY = os.environ["LUABASE_API_KEY"]
     
     redis = aioredis.from_url(
-        "redis://localhost", encoding="utf-8", decode_responses=True
+        os.environ["REDIS_URL"], encoding="utf-8", decode_responses=True
     )
 
     app.config.REDIS_CLIENT = redis.client()
@@ -105,12 +143,10 @@ async def after_server_start(app, loop):
 
 
 if __name__ == '__main__':
+
     ENVIRONMENT = os.environ['APP_ENV']
-    if ENVIRONMENT not in ["dev", "mainnet", "testnet"]:
-        raise Exception(f'Only possible options are ["dev", "mainnet", "testnet"], given is <<{ENVIRONMENT}>>')
+
     logger.info(f"The Env is {ENVIRONMENT}")
-
-
     APP_BP = Blueprint.group(
                             CMN_ADDR_DIFF_TKNS,
                             TOKEN_SEARCH_BP,
@@ -121,9 +157,10 @@ if __name__ == '__main__':
                             TOKEN_STATS_BP,
                             USER_TOKEN_BALANCE_BP,
                             url_prefix='/api')
+    if ENVIRONMENT == "devnet":
+        APP_BP = Blueprint.group(APP_BP, ADMIN_BP)
+
     app.blueprint(APP_BP)
     for route in app.router.routes:
         print(f"/{route.path:60} - {route.name:70} -  {route.methods} [{route.router}]")
-
-
-    app.run(host="0.0.0.0", port=8001, workers=1, auto_reload=True, access_log=False,  reload_dir="./config")
+    app.run(host="0.0.0.0", port=8080, workers=1, auto_reload=True, access_log=False,  reload_dir="./config")

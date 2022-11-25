@@ -34,7 +34,7 @@ async def fetch_coingecko_token_list(app: object):
         temp = e.copy()
         platforms = temp.pop("platforms")
         
-        _platforms = { "ethereum":  get_platform( platforms, "ethereum"),
+        _platforms = { "ethereum":  get_platform(platforms, "ethereum"),
                         "polygon":  get_platform( platforms, "polygon-pos"),
                         "binance_smart_chain": get_platform( platforms, "binance-smart-chain") }
         if list(_platforms.values()).count(None) == len(_platforms):

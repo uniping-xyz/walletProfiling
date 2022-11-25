@@ -6,15 +6,12 @@ from sanic import json, response
 import datetime
 from sanic import request
 from .errors import CustomError
-import web3
 from loguru import logger
-from eth_account.messages import encode_defunct
 import asyncio
 from functools import wraps, partial
 from json import dumps
 from bson.decimal128 import Decimal128
 import json
-w3 = web3.Web3()
 
 def current_timestamp():
     current_time = datetime.datetime.now(datetime.timezone.utc)
