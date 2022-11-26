@@ -95,6 +95,7 @@ async def load_db_secrets():
 
 
     await create_index(app.config.TOKENS, "ethereum")
+    await create_index(app.config.TOKENS, "polygon")
     await create_index(app.config.TOKENS, "tokens")
 
     await create_index(app.config.ETH_ERC721_TOKENS, "tokens")

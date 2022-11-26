@@ -12,7 +12,7 @@ from loguru import logger
 from sanic.request import RequestParameters
 from .token_holders import holders_ERC1155, holders_ERC20, holders_ERC721
 from caching.cache_utils import cache_validity, get_cache, set_cache
-
+from data.populate_blockdaemon import  check_blockDaemon_tokens_staleness
 TOKEN_SEARCH_BP = Blueprint("search", url_prefix='/search/tokens', version=1)
 
 # async def search_erc20_text(session, luabase_api_key, text):
@@ -335,7 +335,13 @@ async def search_contract_address(request):
 
 async def search_erc20_text(app, text):
     result = []
-    cursor = app.config.TOKENS.find({"tokens": {"$in": [text]}}, projection={"_id": False, "tokens": False})
+    cursor = app.config.TOKENS.find({
+                "$and": [
+                    {"ethereum": {"$exists": True}}, 
+                    {"tokens": {"$in": [text]}}
+                ]
+                },
+                projection={"_id": False, "tokens": False})
     async for document in cursor:
         result.append(document)
     return result
@@ -366,7 +372,9 @@ async def search_text(request):
 
     if  not request.args.get("text"):
         raise CustomError("search Text is required")
+    await check_blockDaemon_tokens_staleness(request.app) ##this checks if the coingecko token list in db is not older than 5 hours
 
+    logger.info("Fetching results from mongodb")
     result = await asyncio.gather(*[
                 search_erc20_text(request.app, request.args.get("text")),
                 search_erc721_text(request.app, request.args.get("text")),

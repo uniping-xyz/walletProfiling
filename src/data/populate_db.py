@@ -46,7 +46,7 @@ async def fetch_coingecko_token_list(app: object):
             tokens = list(itertools.chain(*tokenized_name))
             temp.update({"tokens": tokens})
             tokens_list.append(temp)
-    app.config.TOKENS.delete_many({})
-    app.config.TOKENS.insert_many(tokens_list)
+    await app.config.TOKENS.delete_many({})
+    await app.config.TOKENS.insert_many(tokens_list)
     logger.success("Fresh token list from coingecko retrived successfully")
     return 

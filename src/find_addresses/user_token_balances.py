@@ -14,7 +14,8 @@ import requests
 from caching.cache_utils import cache_validity, get_cache, set_cache, delete_cache
 from data.populate_db import check_coingecko_tokens_staleness
 from data.populate_blockdaemon import populate_erc1155_blockdaemon,\
-         populate_erc721_blockdaemon
+         populate_erc721_blockdaemon, check_blockDaemon_tokens_staleness
+
 
 import re
 from caching.cache_utils import cache_validity, get_cache, set_cache, delete_cache
@@ -77,7 +78,8 @@ async def wallet_balance_caching(app: object, caching_key: str, request_args: di
 
 
 async def fetch_wallet_balance(app: object, request_args: RequestParameters) -> list:
-    await check_coingecko_tokens_staleness(app) ##this checks if the coingecko token list in db is not older than 5 hours
+    await check_coingecko_tokens_staleness(app)
+    await check_blockDaemon_tokens_staleness(app) ##this checks if the coingecko token list in db is not older than 5 hours
     headers = {'Content-type': 'application/json'}
     params = {"jsonrpc":"2.0","method":"alchemy_getTokenBalances",
             "params": [request_args.get('wallet_address').lower(), "erc20"],"id":"42"}
