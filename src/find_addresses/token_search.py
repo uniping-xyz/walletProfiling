@@ -12,7 +12,7 @@ from loguru import logger
 from sanic.request import RequestParameters
 from .token_holders import holders_ERC1155, holders_ERC20, holders_ERC721
 from caching.cache_utils import cache_validity, get_cache, set_cache
-from data.populate_blockdaemon import  check_blockDaemon_tokens_staleness
+from data.populate_blockdaemon import  check_blockDaemon_tokens_staleness, populate_erc721_blockdaemon, populate_erc1155_blockdaemon
 TOKEN_SEARCH_BP = Blueprint("search", url_prefix='/search/tokens', version=1)
 
 # async def search_erc20_text(session, luabase_api_key, text):
@@ -230,16 +230,7 @@ async def search_contract_contracts_table(session, luabase_api_key, contract_add
         data =  await response.json()
     return data["data"]
 
-async def contract_standard_type_caching(app: object, caching_key: str, request_args: dict) -> any: 
-    cache_valid = await cache_validity(app.config.REDIS_CLIENT, caching_key, 
-                            app.config.CACHING_TTL['LEVEL_NINE'])
 
-    if not cache_valid:
-        data = await fetch_contract_standard_type(app, request_args)
-        await set_cache(app.config.REDIS_CLIENT, caching_key, data)
-        return data
-    result= await get_cache(app.config.REDIS_CLIENT, caching_key)
-    return json.loads(result)
 
 
 # provides the standard of the contract address
@@ -296,6 +287,114 @@ async def fetch_token_holders(app: object, request_args: dict) -> any:
                     request_args.get("contract_address"), 100, 0)
     return results
 
+
+
+
+async def search_erc20_text(app, text):
+    result = []
+    cursor = app.config.TOKENS.find({
+                "$and": [
+                    {"ethereum": {"$exists": True}}, 
+                    {"tokens": {"$in": [text]}}
+                ]
+                },
+                projection={"_id": False, "tokens": False})
+    async for document in cursor:
+        result.append(document)
+    return result
+
+
+async def search_erc721_text(app, text):
+    result = []
+    cursor = app.config.ETH_ERC721_TOKENS.find({"tokens": text}, projection={"_id": False, "tokens": False})
+    async for document in cursor:
+        result.append(document)
+    return result
+
+
+async def search_erc1155_text(app, text):
+    result = []
+    cursor = app.config.ETH_ERC1155_TOKENS.find({"tokens": text}, projection={"_id": False, "tokens": False})
+    async for document in cursor:
+        result.append(document)
+    return result
+
+
+
+
+@TOKEN_SEARCH_BP.get('text')
+#@authorized
+async def search_text(request):
+    if  request.args.get("chain") not in request.app.config.SUPPORTED_CHAINS:
+        raise CustomError("chain not suported")
+
+    if  not request.args.get("text"):
+        raise CustomError("search Text is required")
+    await check_blockDaemon_tokens_staleness(request.app) ##this checks if the coingecko token list in db is not older than 5 hours
+
+    logger.info("Fetching results from mongodb")
+    result = await asyncio.gather(*[
+                search_erc20_text(request.app, request.args.get("text")),
+                search_erc721_text(request.app, request.args.get("text")),
+                search_erc1155_text(request.app, request.args.get("text")), 
+                 ],                
+                return_exceptions=True)
+
+    logger.success(result)
+    logger.success(f"Length of the result returned is {len(result)}")
+    data = {
+        "erc20": result[0],
+        "erc721": result[1],
+        "erc1155": result[2]
+    }
+    return Response.success_response(data=data)
+
+
+
+
+async def search_erc20_contract_address(app, chain, contract_address):
+    result = await app.config.TOKENS.find_one({chain: contract_address},
+                projection={"_id": False, "tokens": False})
+    logger.info(f"erc20 search finished {result}")
+    if result:
+        return result["name"]
+    return None
+
+async def search_erc721_contract_address(app, chain, contract_address):
+    result = await app.config.ETH_ERC721_TOKENS.find_one({"contracts": contract_address},
+                projection={"_id": False, "tokens": False})
+    return result
+
+async def search_erc1155_contract_address(app, chain, contract_address):
+    result = await app.config.ETH_ERC1155_TOKENS.find_one({"contracts": contract_address},
+                projection={"_id": False, "tokens": False})
+    return result
+
+
+async def contract_standard_type_caching(app: object, caching_key: str, request_args: dict) -> any: 
+    cache_valid = await cache_validity(app.config.REDIS_CLIENT, caching_key, 
+                            app.config.CACHING_TTL['LEVEL_NINE'])
+
+    if not cache_valid:
+        data = await seach_contract_address_in_db(app, request_args)
+        await set_cache(app.config.REDIS_CLIENT, caching_key, data)
+        return data
+    result= await get_cache(app.config.REDIS_CLIENT, caching_key)
+    return json.loads(result)
+
+async def seach_contract_address_in_db(app: object, chain, contract_address) -> any: 
+    logger.info("Ethered in to search contractaddress in db")
+    result = await asyncio.gather(*[
+                search_erc20_contract_address(app, chain, contract_address),
+                search_erc721_contract_address(app, chain, contract_address),
+                search_erc1155_contract_address(app, chain, contract_address), 
+                 ],
+                return_exceptions=True)
+    for e in result:
+        if e:
+            return e
+    return
+
 """
 Based on the contract address, this API gives you the standard of the contract address
 even if that contract address is a proxy
@@ -333,56 +432,8 @@ async def search_contract_address(request):
     return Response.success_response(data=result)
 
 
-async def search_erc20_text(app, text):
-    result = []
-    cursor = app.config.TOKENS.find({
-                "$and": [
-                    {"ethereum": {"$exists": True}}, 
-                    {"tokens": {"$in": [text]}}
-                ]
-                },
-                projection={"_id": False, "tokens": False})
-    async for document in cursor:
-        result.append(document)
-    return result
-
-
-async def search_erc721_text(app, text):
-    result = []
-    cursor = app.config.ETH_ERC721_TOKENS.find({"tokens": {"$in": [text]}}, projection={"_id": False, "tokens": False})
-    async for document in cursor:
-        result.append(document)
-    return result
-
-
-async def search_erc1155_text(app, text):
-    result = []
-    cursor = app.config.ETH_ERC1155_TOKENS.find({"tokens": {"$in": [text]}}, projection={"_id": False, "tokens": False})
-    async for document in cursor:
-        result.append(document)
-    return result
-
-
-
-@TOKEN_SEARCH_BP.get('text')
-#@authorized
-async def search_text(request):
-    if  request.args.get("chain") not in request.app.config.SUPPORTED_CHAINS:
-        raise CustomError("chain not suported")
-
-    if  not request.args.get("text"):
-        raise CustomError("search Text is required")
-    await check_blockDaemon_tokens_staleness(request.app) ##this checks if the coingecko token list in db is not older than 5 hours
-
-    logger.info("Fetching results from mongodb")
-    result = await asyncio.gather(*[
-                search_erc20_text(request.app, request.args.get("text")),
-                search_erc721_text(request.app, request.args.get("text")),
-                search_erc1155_text(request.app, request.args.get("text")), 
-                 ],                
-                return_exceptions=True)
-
-    logger.success(result)
-    logger.success(f"Length of the result returned is {len(result)}")
-    return Response.success_response(data=result)
-
+@TOKEN_SEARCH_BP.get('populate_tokens')
+async def populate_tokens(request):
+    # request.app.add_task(populate_erc721_blockdaemon(request.app))
+    request.app.add_task(populate_erc1155_blockdaemon(request.app))
+    return Response.success_response(data={})
