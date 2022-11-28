@@ -1,130 +1,14 @@
-import requests
 import json
-import asyncio
-import aiohttp
+from loguru import logger
 from sanic import Blueprint
 from utils.utils import Response
 from utils.errors import CustomError
-from utils.authorization import is_subscribed
-
-from loguru import logger
 from sanic.request import RequestParameters
+from utils.authorization import is_subscribed
 from caching.cache_utils import cache_validity, get_cache, set_cache, delete_cache
-
+from find_addresses.external_calls import luabase_token_holders
 TOKEN_HOLDERS_BP = Blueprint("holders", url_prefix='/holders/', version=1)
 
-
-
-async def holders_ERC20(luabase_api_key, contract_address, limit, offset):
-    url = "https://q.luabase.com/run"
-    payload = {
-        "block": {
-            "data_uuid": "83a97a46ae29491eb285ea1cbf2f58dc",
-            "details": {
-                "limit": 2000,
-                "parameters": {
-                    "contract_address": {
-                        "type": "value",
-                        "value": contract_address.lower()
-                    },
-                    "limit": {
-                        "type": "value",
-                        "value": str(limit)
-                    },
-                    "offset": {
-                        "type": "value",
-                        "value": str(offset)
-                    }
-                }
-            }
-        },
-        "api_key": luabase_api_key,
-    }
-
-    headers = {"content-type": "application/json"}
-    async with aiohttp.ClientSession() as session:
-        async with session.post(url, json=payload, headers=headers) as resp:
-            data  = await resp.json()
-
-    print (data)
-    return data["data"]
-
-async def holders_ERC1155(luabase_api_key, contract_address, limit, offset):
-    url = "https://q.luabase.com/run"
-
-    payload = {
-        "block": {
-            "data_uuid": "db64bc5123024e069472dde52417c849",
-            "details": {
-                "limit": 2000,
-                "parameters": {
-                    "limit": {
-                        "type": "value",
-                        "value": str(limit)
-                    },
-                    "offset": {
-                        "type": "value",
-                        "value": str(offset)
-                    },
-                    "contract_address": {
-                        "type": "value",
-                        "value": contract_address.lower()
-                    }
-                }
-            }
-        },
-        "api_key": luabase_api_key,
-    }
-    headers = {"content-type": "application/json"}
-    async with aiohttp.ClientSession() as session:
-        async with session.post(url, json=payload, headers=headers) as resp:
-            data  = await resp.json()
-
-
-    # headers = {"content-type": "application/json"}
-    # response = requests.request("POST", url, json=payload, headers=headers)
-    # data = response.json()
-    print (data)
-    return data["data"]
-
-async def holders_ERC721(luabase_api_key, contract_address, limit, offset):
-    url = "https://q.luabase.com/run"
-
-    payload = {
-        "block": {
-            "data_uuid": "184517a47f5546a2b0f86ef91104e1db",
-            "details": {
-                "limit": 2000,
-                "parameters": {
-                    "contract_address": {
-                        "type": "value",
-                        "value": contract_address.lower()
-                    },
-                    "limit": {
-                        "type": "value",
-                        "value": str(limit)
-                    },
-                    "offset": {
-                        "type": "value",
-                        "value": str(offset)
-                    }
-                }
-            }
-        },
-        "api_key": luabase_api_key,
-    }
-
-    headers = {"content-type": "application/json"}
-    # async with aiohttp.ClientSession() as session:
-    #     async with session.post(url, json=payload, headers=headers) as resp:
-    #         data  = await resp.json()
-
-
-    headers = {"content-type": "application/json"}
-    response = requests.request("POST", url, json=payload, headers=headers)
-    data = response.json()
-    print (data)
-    return data["data"]
 
 
 def make_query_string(request_args: dict) -> str:
@@ -190,16 +74,16 @@ async def token_holders_caching(app: object, caching_key: str, request_args: dic
 async def fetch_data(app: object, request_args: RequestParameters) -> any:
 
     if request_args.get("erc_type") ==  "ERC20":
-        results = await holders_ERC20(app.config.LUABASE_API_KEY,  
+        results = await luabase_token_holders.holders_ERC20(  
                     request_args.get("contract_address"),  request_args.get("limit"),  
                     request_args.get("offset"))
 
     elif request_args.get("erc_type") ==  "ERC721":
-        results = await holders_ERC721(app.config.LUABASE_API_KEY,  
+        results = await luabase_token_holders.holders_ERC721(
                     request_args.get("contract_address"),  request_args.get("limit"),  
                     request_args.get("offset"))    
     else:
-        results = await holders_ERC1155(app.config.LUABASE_API_KEY,  
+        results = await luabase_token_holders.holders_ERC1155(
                     request_args.get("contract_address"),  request_args.get("limit"),  
                     request_args.get("offset"))
     return results

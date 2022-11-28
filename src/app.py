@@ -16,6 +16,7 @@ from find_addresses.contract_tags import TOKEN_TAGS_BP
 from find_addresses.token_stats import TOKEN_STATS_BP
 from find_addresses.wallet_stats import USER_TOKEN_BALANCE_BP
 from find_addresses.admin import ADMIN_BP
+from utils.errors import ERRORS_BP
 from dotenv import load_dotenv, dotenv_values
 
 from sanic_cors import CORS
@@ -167,6 +168,7 @@ if __name__ == '__main__':
                             TOKEN_TAGS_BP,
                             TOKEN_STATS_BP,
                             USER_TOKEN_BALANCE_BP,
+                            ERRORS_BP,
                             url_prefix='/api')
     if ENVIRONMENT == "devnet":
         APP_BP = Blueprint.group(APP_BP, ADMIN_BP)
