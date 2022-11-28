@@ -84,20 +84,30 @@ async def load_db_secrets():
     connection = AsyncIOMotorClient(uri)
 
     db = connection[db_name]
-    app.config.TOKENS = db["tokens"]
+    # app.config.TOKENS = db["tokens"]
     app.config.QUERIES = db["queries"]
+    app.config.ETH_ERC20_TOKENS = db["eth_erc20_tokens"]
+    app.config.POLYGON_ERC20_TOKENS = db["polygon_erc20_tokens"]
+
     app.config.ETH_ERC721_TOKENS = db["eth_erc721_tokens"]
     app.config.ETH_ERC1155_TOKENS = db["eth_erc1155_tokens"]
 
+    logger.success(f"Total ETH ERC721 tokens in DB  {await app.config.ETH_ERC721_TOKENS.count_documents({})}")
+    logger.success(f"Total ETH ERC1155 tokens in DB  {await app.config.ETH_ERC1155_TOKENS.count_documents({})}")
+    logger.success(f"Total ETH ERC20 tokens in DB  {await app.config.ETH_ERC20_TOKENS.count_documents({})}")
 
     
-    logger.success(f"Total tokens in DB  {await app.config.TOKENS.count_documents({})}")
+    # logger.success(f"Total tokens in DB  {await app.config.TOKENS.count_documents({})}")
 
 
-    await create_index(app.config.TOKENS, "ethereum")
-    await create_index(app.config.TOKENS, "polygon")
-    await create_index(app.config.TOKENS, "tokens")
+    # await create_index(app.config.TOKENS, "ethereum")
+    # await create_index(app.config.TOKENS, "polygon")
+    # await create_index(app.config.TOKENS, "tokens")
 
+    await create_index(app.config.ETH_ERC20_TOKENS, "tokens")
+    await create_index(app.config.ETH_ERC20_TOKENS, "contracts")
+    await create_index(app.config.POLYGON_ERC20_TOKENS, "tokens")
+    await create_index(app.config.POLYGON_ERC20_TOKENS, "contracts")
     await create_index(app.config.ETH_ERC721_TOKENS, "tokens")
     await create_index(app.config.ETH_ERC721_TOKENS, "contracts")
     await create_index(app.config.ETH_ERC1155_TOKENS, "tokens")

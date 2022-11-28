@@ -9,160 +9,22 @@ from utils.utils import Response
 from utils.errors import CustomError
 from utils.authorization import is_subscribed
 from loguru import logger
+from eth_utils import to_checksum_address
 from sanic.request import RequestParameters
 from .token_holders import holders_ERC1155, holders_ERC20, holders_ERC721
 from caching.cache_utils import cache_validity, get_cache, set_cache
-from data.populate_blockdaemon import  check_blockDaemon_tokens_staleness, populate_erc721_blockdaemon, populate_erc1155_blockdaemon
+from data.populate_blockdaemon import  check_blockDaemon_tokens_staleness, \
+            populate_erc721_blockdaemon, populate_erc1155_blockdaemon
+from data.populate_coingecko import check_coingecko_tokens_staleness, fetch_coingecko_token_list
+from find_addresses.external_calls import luabase_text_search 
+
+
+from find_addresses.db_calls.erc20.ethereum import search_contract_address as erc20_eth_search
+from find_addresses.db_calls.erc721.ethereum import search_contract_address as erc721_eth_search
+from find_addresses.db_calls.erc1155.ethereum import search_contract_address as erc1155_eth_search
+
 TOKEN_SEARCH_BP = Blueprint("search", url_prefix='/search/tokens', version=1)
 
-# async def search_erc20_text(session, luabase_api_key, text):
-#     url = "https://q.luabase.com/run"
-
-#     payload = {
-#     "block": {
-#         "data_uuid": "c263e31ce99a4681a2b8ca347d4a4b3f",
-#         "details": {
-#             "parameters": {
-#             "home": {
-#                     "type": "value",
-#                     "value": ""
-#                 },
-#                 "query": {
-#                     "type": "value",
-#                     "value": text
-#             }
-#                         }
-#         }
-#     },
-#      "api_key": luabase_api_key
-#     }
-#     headers = {"content-type": "application/json"}
-#     # async with session.post(url, json={'test': 'object'})
-#     # response = requests.request("POST", url, json=payload, headers=headers)
-    
-#     async with session.post(url, json=payload, headers=headers) as response:
-#         data =  await response.json()
-#     return data["data"]
-
-# async def search_erc721_text(session, luabase_api_key, text):
-#     url = "https://q.luabase.com/run"
-
-#     payload = {
-#     "block": {
-#         "data_uuid": "638504aeccd84f89ac509ec1161872f1",
-#         "details": {
-#             "parameters": {
-#             "home": {
-#                     "type": "value",
-#                     "value": ""
-#                 },
-#                 "query": {
-#                     "type": "value",
-#                     "value": text
-#             }
-#                         }
-#         }
-#     },
-#      "api_key": luabase_api_key
-#     }
-#     headers = {"content-type": "application/json"}
-#     async with session.post(url, json=payload, headers=headers) as response:
-#         data =  await response.json()
-
-#     return data["data"]
-
-# async def search_erc1155_text(session, luabase_api_key, text):
-#     url = "https://q.luabase.com/run"
-
-#     payload = {
-#     "block": {
-#         "data_uuid": "7568715f03a546a085ff57316bdc0d44",
-#         "details": {
-#             "parameters": {
-#             "home": {
-#                     "type": "value",
-#                     "value": ""
-#                 },
-#                 "query": {
-#                     "type": "value",
-#                     "value": text
-#             }
-#                         }
-#         }
-#     },
-#      "api_key": luabase_api_key
-#     }
-#     headers = {"content-type": "application/json"}
-
-#     async with session.post(url, json=payload, headers=headers) as response:
-#         data =  await response.json()
-
-#     return data["data"]
-
-
-"""
-select standard
-from ethereum.nft_transfers  
-where contract_address == lower('{{token_address}}')
-limit 1
-"""
-async def search_contract_nft_transfers(session, luabase_api_key, contract_address):
-    url = "https://q.luabase.com/run"
-
-    payload = {
-        "block": {
-            "data_uuid": "09d7e7740ddf4b368cdf84abd8d1626d",
-            "details": {
-                "limit": 2000,
-                "parameters": {
-                    "token_address": {
-                        "type": "value",
-                        "value": contract_address.lower()
-                    }
-                }
-            }
-        },
-        "api_key": luabase_api_key,
-    }
-    
-    headers = {"content-type": "application/json"}
-
-    async with session.post(url, json=payload, headers=headers) as response:
-        data =  await response.json()
-
-    return data["data"]
-
-
-
-"""
-select *
-from ethereum.token_transfers  
-where token_address == lower('{{token_address}}')
-"""
-async def search_contract_erc20_transfers(session, luabase_api_key, contract_address):
-    url = "https://q.luabase.com/run"
-
-    payload = {
-        "block": {
-            "data_uuid": "54ca20e088a94c8090bbd6316135d547",
-            "details": {
-                "limit": 2000,
-                "parameters": {
-                    "token_address": {
-                        "type": "value",
-                        "value": contract_address.lower()
-                    }
-                }
-            }
-        },
-        "api_key": luabase_api_key,
-    }
-
-    headers = {"content-type": "application/json"}
-    async with session.post(url, json=payload, headers=headers) as response:
-        data =  await response.json()
-
-    return data["data"]
 
 
 
@@ -290,41 +152,19 @@ async def fetch_token_holders(app: object, request_args: dict) -> any:
 
 
 
-async def search_erc20_text(app, text):
-    result = []
-    cursor = app.config.TOKENS.find({
-                "$and": [
-                    {"ethereum": {"$exists": True}}, 
-                    {"tokens": {"$in": [text]}}
-                ]
-                },
-                projection={"_id": False, "tokens": False})
-    async for document in cursor:
-        result.append(document)
-    return result
-
-
-async def search_erc721_text(app, text):
-    result = []
-    cursor = app.config.ETH_ERC721_TOKENS.find({"tokens": text}, projection={"_id": False, "tokens": False})
-    async for document in cursor:
-        result.append(document)
-    return result
-
-
-async def search_erc1155_text(app, text):
-    result = []
-    cursor = app.config.ETH_ERC1155_TOKENS.find({"tokens": text}, projection={"_id": False, "tokens": False})
-    async for document in cursor:
-        result.append(document)
-    return result
 
 
 
 
-@TOKEN_SEARCH_BP.get('text')
+
+
+
+
+@TOKEN_SEARCH_BP.get('new/text')
 #@authorized
 async def search_text(request):
+    await check_coingecko_tokens_staleness(request.app)
+    await check_blockDaemon_tokens_staleness(request.app) ##
     if  request.args.get("chain") not in request.app.config.SUPPORTED_CHAINS:
         raise CustomError("chain not suported")
 
@@ -352,28 +192,10 @@ async def search_text(request):
 
 
 
-async def search_erc20_contract_address(app, chain, contract_address):
-    result = await app.config.TOKENS.find_one({chain: contract_address},
-                projection={"_id": False, "tokens": False})
-    logger.info(f"erc20 search finished {result}")
-    if result:
-        return result["name"]
-    return None
-
-async def search_erc721_contract_address(app, chain, contract_address):
-    result = await app.config.ETH_ERC721_TOKENS.find_one({"contracts": contract_address},
-                projection={"_id": False, "tokens": False})
-    return result
-
-async def search_erc1155_contract_address(app, chain, contract_address):
-    result = await app.config.ETH_ERC1155_TOKENS.find_one({"contracts": contract_address},
-                projection={"_id": False, "tokens": False})
-    return result
-
 
 async def contract_standard_type_caching(app: object, caching_key: str, request_args: dict) -> any: 
     cache_valid = await cache_validity(app.config.REDIS_CLIENT, caching_key, 
-                            app.config.CACHING_TTL['LEVEL_NINE'])
+                            app.config.CACHING_TTL['LEVEL_ZERO'])
 
     if not cache_valid:
         data = await seach_contract_address_in_db(app, request_args)
@@ -382,18 +204,20 @@ async def contract_standard_type_caching(app: object, caching_key: str, request_
     result= await get_cache(app.config.REDIS_CLIENT, caching_key)
     return json.loads(result)
 
-async def seach_contract_address_in_db(app: object, chain, contract_address) -> any: 
+async def seach_contract_address_in_db(app: object, request_args) -> any: 
     logger.info("Ethered in to search contractaddress in db")
-    result = await asyncio.gather(*[
-                search_erc20_contract_address(app, chain, contract_address),
-                search_erc721_contract_address(app, chain, contract_address),
-                search_erc1155_contract_address(app, chain, contract_address), 
-                 ],
-                return_exceptions=True)
-    for e in result:
-        if e:
-            return e
-    return
+    result = None
+    result = await search_erc20_contract_address(app, request_args.get("contract_address"))
+    if not result:
+        result = await search_erc721_contract_address(app, request_args.get("contract_address"))
+    if not result:
+        result = await search_erc1155_contract_address(app, request_args.get("contract_address"))
+
+    if result.get("contracts"):
+        if type(result.get("contracts")) == list:
+            contracts = result.pop("contracts")
+            result.update({"contracts": contracts})
+    return result
 
 """
 Based on the contract address, this API gives you the standard of the contract address
@@ -432,8 +256,34 @@ async def search_contract_address(request):
     return Response.success_response(data=result)
 
 
+
+
+@TOKEN_SEARCH_BP.get('text')
+#@authorized
+async def search_text(request):
+    if  request.args.get("chain") not in request.app.config.SUPPORTED_CHAINS:
+        raise CustomError("chain not suported")
+
+    if  not request.args.get("text"):
+        raise CustomError("search Text is required")
+
+    async with aiohttp.ClientSession() as session:
+        result = await asyncio.gather(*[
+                luabase_text_search.search_erc20_text(session, request.app.config.LUABASE_API_KEY, request.args.get("text")),
+                luabase_text_search.search_erc721_text(session, request.app.config.LUABASE_API_KEY, request.args.get("text")), 
+                luabase_text_search.search_erc1155_text(session, request.app.config.LUABASE_API_KEY, request.args.get("text"))],                
+                return_exceptions=True)
+
+    logger.success(result)
+    logger.success(f"Length of the result returned is {len(result)}")
+    return Response.success_response(data=result)
+
+
+
+
 @TOKEN_SEARCH_BP.get('populate_tokens')
 async def populate_tokens(request):
     # request.app.add_task(populate_erc721_blockdaemon(request.app))
-    request.app.add_task(populate_erc1155_blockdaemon(request.app))
+    # request.app.add_task(populate_erc1155_blockdaemon(request.app))
+    request.app.add_task(fetch_coingecko_token_list(request.app))
     return Response.success_response(data={})

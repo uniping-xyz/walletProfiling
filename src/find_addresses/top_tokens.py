@@ -8,7 +8,11 @@ from utils.utils import Response
 from utils.errors import CustomError
 from utils.authorization import is_subscribed
 from loguru import logger
+from find_addresses.external_calls import luabase_trending
 from caching.cache_utils import cache_validity, get_cache, set_cache, delete_cache
+from find_addresses.db_calls.erc20.ethereum import search_contract_address as erc20_eth_search
+from find_addresses.db_calls.erc721.ethereum import search_contract_address as erc721_eth_search
+from find_addresses.db_calls.erc1155.ethereum import search_contract_address as erc1155_eth_search
 
 MOST_POPULAR_BP = Blueprint("most_popular", url_prefix='/most_popular/tokens', version=1)
 
@@ -71,125 +75,7 @@ async def all_time_top_erc20(luabase_api_key, chain, limit, offset, number_of_da
     return data["data"]
 
 
-async def topERC20(luabase_api_key, chain, limit, offset, number_of_days):
-    url = "https://q.luabase.com/run"
-    payload = {
-        "block": {
-            "data_uuid": "3a67d1de7cf9449d864813cc129f9e97",
-            "details": {
-                "limit": 2000,
-                "parameters": {
-                    "chain": {
-                        "value": chain,
-                        "type": "value"
-                    },
-                    "number_of_days": {
-                        "value": number_of_days,
-                        "type": "value"
-                    },
-                    "limit": {
-                        "value": limit,
-                        "type": "value"
-                    },
-                    "offset": {
-                        "value": offset,
-                        "type": "value"
-                    }
-                }
-            }
-        },
-        "api_key": luabase_api_key,
-    }
-    headers = {"content-type": "application/json"}
-    async with aiohttp.ClientSession() as session:
-        async with session.post(url, json=payload, headers=headers) as resp:
-            data  = await resp.json() 
-    print (data)
-    return data["data"]
 
-async def topERC1155(luabase_api_key, chain, limit, offset, number_of_days):
-    STANDARD = 'erc1155'
-    url = "https://q.luabase.com/run"
-
-    payload = {
-        "block": {
-            "data_uuid": "3d9e2c5ca87c4a50a8c6908fdd5b316f",
-            "details": {
-                "limit": 2000,
-                "parameters": {
-                    "chain": {
-                        "type": "value",
-                        "value": chain
-                    },
-                    "number_of_days": {
-                        "type": "value",
-                        "value": number_of_days
-                    },
-                    "standard": {
-                        "value": STANDARD,
-                        "type": "value"
-                    },
-                    "limit": {
-                        "type": "value",
-                        "value": limit
-                    },
-                    "offset": {
-                        "type": "value",
-                        "value": offset
-                    }
-                }
-            }
-        },
-        "api_key": luabase_api_key,
-    }
-
-    headers = {"content-type": "application/json"}
-    async with aiohttp.ClientSession() as session:
-        async with session.post(url, json=payload, headers=headers) as resp:
-            data  = await resp.json()
-    return data["data"]
-
-async def topERC721(luabase_api_key, chain, limit, offset, number_of_days):
-    STANDARD = 'erc721'
-    url = "https://q.luabase.com/run"
-
-    payload = {
-        "block": {
-            "data_uuid": "3d9e2c5ca87c4a50a8c6908fdd5b316f",
-            "details": {
-                "limit": 2000,
-                "parameters": {
-                    "chain": {
-                        "type": "value",
-                        "value": chain
-                    },
-                    "number_of_days": {
-                        "type": "value",
-                        "value": number_of_days
-                    },
-                    "standard": {
-                        "value": STANDARD,
-                        "type": "value"
-                    },
-                    "limit": {
-                        "type": "value",
-                        "value": limit
-                    },
-                    "offset": {
-                        "type": "value",
-                        "value": offset
-                    }
-                }
-            }
-        },
-        "api_key": luabase_api_key,
-    }
-
-    headers = {"content-type": "application/json"}
-    async with aiohttp.ClientSession() as session:
-        async with session.post(url, json=payload, headers=headers) as resp:
-            data  = await resp.json()
-    return data["data"]
 
 def make_query_string(request_args: dict) -> str:
     query_string = ""
@@ -247,7 +133,7 @@ async def most_popular(request):
 
 async def most_popular_token_caching(app: object, caching_key: str, request_args: dict) -> any: 
     cache_valid = await cache_validity(app.config.REDIS_CLIENT, caching_key, 
-                            app.config.CACHING_TTL['LEVEL_FIVE'])
+                            app.config.CACHING_TTL['LEVEL_ZERO'])
 
     if not cache_valid:
         data = await fetch_data(app, request_args)
@@ -259,18 +145,36 @@ async def most_popular_token_caching(app: object, caching_key: str, request_args
 async def fetch_data(app: object, request_args: RequestParameters) -> any:
     if request_args.get("erc_type") ==  "ERC20":
         logger.info("ERC20 token_type")
-        results = await topERC20(app.config.LUABASE_API_KEY,  
+        results = await luabase_trending.topERC20(app.config.LUABASE_API_KEY,  
                         request_args.get("chain"), request_args.get("limit"), 
                         request_args.get("offset"), request_args.get("number_of_days"))
+        for e in results:
+            if not e["name"]:
+                res = await erc20_eth_search(app, e["contract_address"])
+                if res:
+                    e.update({"name": res.get("name")})
+
 
     elif request_args.get("erc_type") ==  "ERC721":
         logger.info("ERC721 token_type")
-        results = await topERC721(app.config.LUABASE_API_KEY,  
+        results = await luabase_trending.topERC721(app.config.LUABASE_API_KEY,  
                         request_args.get("chain"), request_args.get("limit"), 
-                        request_args.get("offset"), request_args.get("number_of_days"))   
+                        request_args.get("offset"), request_args.get("number_of_days")) 
+        for e in results:
+            if not e["name"]:
+                logger.info(f"OLD {e}")
+                res = await erc721_eth_search(app, e["contract_address"])
+                if res:
+                    e.update({"name": res.get("name")})
     else:
         logger.info("ERC1155 token_type")
-        results = await topERC1155(app.config.LUABASE_API_KEY,  
+        results = await luabase_trending.topERC1155(app.config.LUABASE_API_KEY,  
                         request_args.get("chain"), request_args.get("limit"), 
                         request_args.get("offset"), request_args.get("number_of_days"))
+        for e in results:
+            if not e["name"]:
+                res = await erc1155_eth_search(app, e["contract_address"])
+                if res:
+                    e.update({"name": res.get("name")})
+    print (results)
     return results

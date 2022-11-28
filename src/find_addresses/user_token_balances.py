@@ -12,11 +12,15 @@ from google.cloud import bigquery
 from sanic.request import RequestParameters
 import requests
 from caching.cache_utils import cache_validity, get_cache, set_cache, delete_cache
-from data.populate_db import check_coingecko_tokens_staleness
+from data.populate_coingecko import check_coingecko_tokens_staleness
 from data.populate_blockdaemon import populate_erc1155_blockdaemon,\
          populate_erc721_blockdaemon, check_blockDaemon_tokens_staleness
-from .token_search import search_erc721_contract_address, search_erc20_contract_address,\
-        search_erc1155_contract_address
+
+from find_addresses.db_calls.erc20.ethereum import search_contract_address as erc20_eth_search
+from find_addresses.db_calls.erc721.ethereum import search_contract_address as erc721_eth_search
+from find_addresses.db_calls.erc1155.ethereum import search_contract_address as erc1155_eth_search
+
+
 
 import re
 from caching.cache_utils import cache_validity, get_cache, set_cache, delete_cache
@@ -180,7 +184,6 @@ async def nft_balances(request):
         params.update({"page_token": request.args.get("next_page_token")})
     wallet_address = request.args.get('wallet_address')
     chain = request.args.get('chain')
-
     # await fetch_nft_balance(request.app, request.args, "ethereum")
   
     if not wallet_address:
