@@ -1,9 +1,4 @@
-
-
-
-
-
-import requests
+import aiohttp
 import os
 
 """
@@ -37,9 +32,9 @@ select DATE(block_timestamp) as _date , sum(value_eth) as floor_price
 from filtered_transactions 
 group by _date
 """
-async def find_floor_price(session, luabase_api_key, contract_address):
+async def find_floor_price(contract_address):
     url = "https://q.luabase.com/run"
-    LUABASE_API_KEY = os.getenv('LUABASE_API_KEY')
+    LUABASE_API_KEY = os.environ['LUABASE_API_KEY']
 
     url = "https://q.luabase.com/run"
 
@@ -59,5 +54,7 @@ async def find_floor_price(session, luabase_api_key, contract_address):
         "api_key": LUABASE_API_KEY,
     }
     headers = {"content-type": "application/json"}
-    response = requests.request("POST", url, json=payload, headers=headers)
-    data = response.json() 
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, json=payload, headers=headers) as response:
+            data =  await response.json()
+    return data["data"]

@@ -16,66 +16,6 @@ from find_addresses.db_calls.erc1155.ethereum import search_contract_address as 
 
 MOST_POPULAR_BP = Blueprint("most_popular", url_prefix='/most_popular/tokens', version=1)
 
-"""
-This is the live view  {{home}}.all_time_erc20_live_view and it runs daily
-
-with total_transactions_pertoken_perday as(
-  select count(*) as total_transactions,
-  token_address
-  from {{chain}}.token_transfers
-  WHERE 
-    token_address NOT IN (SELECT DISTINCT contract_address FROM {{chain}}.nft_transfers)
-  GROUP by
-    token_address
-  ORDER BY total_transactions DESC 
-),
-
-with_names as (
-  select distinct tt.total_transactions, tt.token_address as contract_address, pp.address, pp.name, pp.symbol from total_transactions_pertoken_perday as tt
-  left join
-  ethereum.tokens as pp
-  on lower(tt.token_address) = lower(pp.address)
-)
-select * from with_names
-The query that fetches contracts from this live view is this
-"""
-
-async def all_time_top_erc20(luabase_api_key, chain, limit, offset, number_of_days):
-    url = "https://q.luabase.com/run"
-    payload = {
-        "block": {
-            "data_uuid": "86ab5185ea0f479785e36bfd5da05797",
-            "details": {
-                "limit": 2000,
-                "parameters": {
-                    "chain": {
-                        "type": "value",
-                        "value": chain
-                    },
-                    "number_of_days": {
-                        "type": "value",
-                        "value": "7"
-                    },
-                    "limit": {
-                        "type": "value",
-                        "value": "20"
-                    },
-                    "offset": {
-                        "type": "value",
-                        "value": "0"
-                    }
-                }
-            }
-        },
-        "api_key": luabase_api_key,
-    }
-    headers = {"content-type": "application/json"}
-    response = requests.request("POST", url, json=payload, headers=headers)
-    data = response.json() 
-    return data["data"]
-
-
-
 
 def make_query_string(request_args: dict) -> str:
     query_string = ""
@@ -144,7 +84,6 @@ async def most_popular_token_caching(app: object, caching_key: str, request_args
 
 async def fetch_data(app: object, request_args: RequestParameters) -> any:
     if request_args.get("erc_type") ==  "ERC20":
-        logger.info("ERC20 token_type")
         results = await luabase_trending.topERC20(app.config.LUABASE_API_KEY,  
                         request_args.get("chain"), request_args.get("limit"), 
                         request_args.get("offset"), request_args.get("number_of_days"))
@@ -156,7 +95,6 @@ async def fetch_data(app: object, request_args: RequestParameters) -> any:
 
 
     elif request_args.get("erc_type") ==  "ERC721":
-        logger.info("ERC721 token_type")
         results = await luabase_trending.topERC721(app.config.LUABASE_API_KEY,  
                         request_args.get("chain"), request_args.get("limit"), 
                         request_args.get("offset"), request_args.get("number_of_days")) 
@@ -167,7 +105,6 @@ async def fetch_data(app: object, request_args: RequestParameters) -> any:
                 if res:
                     e.update({"name": res.get("name")})
     else:
-        logger.info("ERC1155 token_type")
         results = await luabase_trending.topERC1155(app.config.LUABASE_API_KEY,  
                         request_args.get("chain"), request_args.get("limit"), 
                         request_args.get("offset"), request_args.get("number_of_days"))
@@ -176,5 +113,4 @@ async def fetch_data(app: object, request_args: RequestParameters) -> any:
                 res = await erc1155_eth_search(app, e["contract_address"])
                 if res:
                     e.update({"name": res.get("name")})
-    print (results)
     return results
