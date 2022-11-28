@@ -1,3 +1,7 @@
+
+### Big query setup codelab example
+https://codelabs.developers.google.com/codelabs/cloud-bigquery-python#3
+
 # WalletProfiling
 
 ## ------------------ BIg Query setup -------------------------------------------- ## 
