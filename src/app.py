@@ -14,7 +14,7 @@ from find_addresses.token_holders import TOKEN_HOLDERS_BP
 from find_addresses.token_transfers import TOKEN_TRANSFERS_BP
 from find_addresses.contract_tags import TOKEN_TAGS_BP
 from find_addresses.token_stats import TOKEN_STATS_BP
-from find_addresses.user_token_balances import USER_TOKEN_BALANCE_BP
+from find_addresses.wallet_stats import USER_TOKEN_BALANCE_BP
 from find_addresses.admin import ADMIN_BP
 from dotenv import load_dotenv, dotenv_values
 
@@ -140,8 +140,7 @@ async def after_server_start(app, loop):
     await secret()
     app.config.bq_polygon_table = os.environ["BQ_POLYGON_TABLE_NAME"]
     app.config.bq_eth_table = os.environ["BQ_ETH_TABLE_NAME"]
-    app.config.WEB3_PROVIDER = os.environ["WEB3_PROVIDER"]
-    app.config.LUABASE_API_KEY = os.environ["LUABASE_API_KEY"]
+
     
     redis = aioredis.from_url(
         os.environ["REDIS_URL"], encoding="utf-8", decode_responses=True
