@@ -138,6 +138,8 @@ async def after_server_start(app, loop):
     logger.info(f"Config loded")
     await load_config()
     await secret()
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = f'./config/{ENVIRONMENT}/gcloud_secrets.json'
+
     app.config.bq_polygon_table = os.environ["BQ_POLYGON_TABLE_NAME"]
     app.config.bq_eth_table = os.environ["BQ_ETH_TABLE_NAME"]
 

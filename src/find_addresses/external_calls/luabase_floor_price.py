@@ -32,7 +32,7 @@ select DATE(block_timestamp) as _date , sum(value_eth) as floor_price
 from filtered_transactions 
 group by _date
 """
-async def find_floor_price(contract_address):
+async def floor_price_per_day(contract_address):
     url = "https://q.luabase.com/run"
     LUABASE_API_KEY = os.environ['LUABASE_API_KEY']
 

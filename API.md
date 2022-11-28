@@ -1,4 +1,4 @@
-#### TOKEN SEARCH
+## TOKEN SEARCH
 
 ```
 url = "http://localhost:8006/v1/api/search/tokens/text"
@@ -24,8 +24,8 @@ params={ "chain": "ethereum", "text": "uniswap"}
  'success': True}
 ```
 
-### Token Transfers
-#### ERC721
+## Token Transfers
+### ERC721
 ```
 url = "http://localhost:8006/v1/api/transfers/token_transfers" 
 headers={"token": token}, 
@@ -111,9 +111,9 @@ response = {'message': None,
 ```
 
 
-### Wallet Stats 
+## Wallet Stats 
 
-#### NFT Balances of a wallet address
+### NFT Balances of a wallet address
 ```
 url = "http://localhost:8006/v1/api/wallet/nft_balances"
 headers={"token": token}
@@ -141,7 +141,7 @@ response =  {'message': None,
             'error': False,
             'success': True}
 ```
-#### ERC20 Token Balances of a wallet address
+### ERC20 Token Balances of a wallet address
 ```
 url = "http://localhost:8006/v1/api/wallet/erc20_balances" 
 headers={"token": token} 
@@ -174,7 +174,7 @@ response = {'message': None,
 ```
 
 
-#### Wallet transactions made by wallet on a per day basis
+### Wallet transactions made by wallet on a per day basis
 ```
 url = "http://localhost:8006/v1/api/wallet/txs_per_day"
 headers={"token": token}
@@ -196,7 +196,7 @@ response = {'message': None,
           'error': False,
           'success': True}
  ```
-#### Wallet transactions made by wallet in native form
+### Wallet transactions made by wallet in native form
 ```
 url = "http://localhost:8006/v1/api/wallet/txs" 
 headers={"token": token} 
@@ -227,3 +227,99 @@ response = {'message': None,
         'error': False,
         'success': True}
 ```
+
+## Tokens
+
+### Token metadata
+```
+
+url = "http://localhost:8006/v1/api/token/metadata"
+headers={"token": token}
+params={ "chain": "ethereum", "token_address": "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D"})
+
+response = {'message': None,
+    'count': 0,
+    'data': {'collection': {'id': '4203aedd-7964-5fe1-b932-eb8c4fda7822',
+      'name': 'Bored Ape Yacht Club',
+      'description': 'The Bored Ape Yacht Club is a collection of 10,000 unique Bored Ape NFTs— unique digital collectibles living on the Ethereum blockchain. Your Bored Ape doubles as your Yacht Club membership card, and grants access to members-only benefits, the first of which is access to THE BATHROOM, a collaborative graffiti board. Future areas and perks can be unlocked by the community through roadmap activation. Visit www.BoredApeYachtClub.com for more details.',
+      'logo': 'collection/4203aedd-7964-5fe1-b932-eb8c4fda7822/logo.png',
+      'banner': '',
+      'verified': True,
+      'contracts': [{'address': '0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D',
+        'name': 'BoredApeYachtClub',
+        'symbol': 'BAYC',
+        'description': '',
+        'image_url': '',
+        'type': 'ERC721'}],
+      'meta': {'discord_url': 'https://discord.gg/3P5K3dzgdB',
+        'external_url': 'http://www.boredapeyachtclub.com/',
+        'twitter_username': 'BoredApeYC'},
+      'sub_collection': []}},
+    'error': False,
+    'success': True}
+```
+### Token FloorPrice
+```
+url = "http://localhost:8006/v1/api/token/floor_price"
+headers={"token": token}
+params={ "chain": "ethereum", "token_address": "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D"}
+response =  {'message': None,
+ 'count': 0,
+ 'data': [{'_date': '2022-08-30', 'floor_price': 631.6824368789079},
+  {'_date': '2022-08-31', 'floor_price': 1333.026012066439},
+  {'_date': '2022-09-01', 'floor_price': 283.0732325793904},
+  {'_date': '2022-09-02', 'floor_price': 723.6805356840879},
+  {'_date': '2022-09-03', 'floor_price': 232.51999999999998},
+  {'_date': '2022-09-04', 'floor_price': 99.9127418457075},
+  {'_date': '2022-09-05', 'floor_price': 850.2566637891362},
+  {'_date': '2022-09-06', 'floor_price': 500.07575733371255},
+  {'_date': '2022-09-07', 'floor_price': 1391.3282783581044},
+  {'_date': '2022-09-08', 'floor_price': 506.0411423697153},
+  {'_date': '2022-09-09', 'floor_price': 393.4505661597685},
+  {'_date': '2022-09-10', 'floor_price': 362.42124918053725},
+  {'_date': '2022-09-11', 'floor_price': 799.1985555410363},
+  {'_date': '2022-09-12', 'floor_price': 590.8820702979096},
+  {'_date': '2022-09-13', 'floor_price': 756.6903934553179},
+  {'_date': '2022-09-14', 'floor_price': 311.50107219535914},
+  {'_date': '2022-09-15', 'floor_price': 814.0993835592075},
+  {'_date': '2022-09-16', 'floor_price': 200.1508252955162},
+  {'_date': '2022-09-17', 'floor_price': 863.4365347634388},
+  {'_date': '2022-09-18', 'floor_price': 671.1395177422404},
+  {'_date': '2022-09-19', 'floor_price': 765.3543856597028},
+  {'_date': '2022-09-20', 'floor_price': 1366.0740980626103},
+  {'_date': '2022-09-21', 'floor_price': 379.7496618713314},
+  {'_date': '2022-09-22', 'floor_price': 361.71943463542436},
+  {'_date': '2022-09-23', 'floor_price': 1340.9575196264486},
+  {'_date': '2022-09-24', 'floor_price': 1637.414412595278},
+  {'_date': '2022-09-25', 'floor_price': 893.791278282751},
+  {'_date': '2022-09-26', 'floor_price': 1313.8906919811402},
+  {'_date': '2022-09-27', 'floor_price': 708.3050000000001},
+  {'_date': '2022-09-28', 'floor_price': 801.3135595439647}],
+ 'error': False,
+ 'success': True}
+```
+
+### Token Stats
+```
+url = "http://localhost:8006/v1/api/token/stats"
+headers={"token": token}
+params={ "chain": "ethereum", "token_address": "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D"})
+
+response = 
+{'message': None,
+ 'count': 0,
+ 'data': [{'total_transactions': 140,
+   'timestamp': '1669593600',
+   'unique_addresses': 80},
+  {'total_transactions': 92,
+   'timestamp': '1662076800',
+   'unique_addresses': 67},
+  {'total_transactions': 24,
+   'timestamp': '1661990400',
+   'unique_addresses': 30},
+  {'total_transactions': 72,
+   'timestamp': '1661904000',
+   'unique_addresses': 59}],
+ 'error': False,
+ 'success': True}
+ ```

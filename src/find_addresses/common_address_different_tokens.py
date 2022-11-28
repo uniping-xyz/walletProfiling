@@ -115,39 +115,3 @@ async def token_data(request):
     sorted_result = sorted(result,  key=lambda d: d['last_transacted'], reverse=True
     )
     return Response.success_response(data=sorted_result)
-
-
-# @FIND_ADDRESSES_BP.get('wallet_data')
-# #@authorized
-# async def token_data(request):
-#     #amafans_channel_object = request.app.config.amafans_channel_object
-#     wallet_address = request.args.get('wallet_address')
-#     if not request.args.get("wallet_address") :
-#         raise CustomError("wallet_address  is required")
-
-#     if not request.args.get("chain") or  request.args.get("chain") not in ["ethereum", "polygon"]:
-#         raise CustomError("Chain is required and should be either ethereum or polygon")
-
-#     if request.args.get("chain") ==  "polygon":
-#         query = f"""
-#             SELECT *
-#             FROM `{request.app.config.bq_polygon_table}`
-#             """        
-#     else:
-#         query = f"""
-#             SELECT *
-#             FROM `{request.app.config.bq_eth_table}`
-#             """
-
-
-#     and_statement = f'WHERE wallet_address="{wallet_address}" '
-
-#     query += and_statement
-#     client = bigquery.Client()
-#     print (query)
-
-#     return Response.success_response(data=query)
-
-
-
-

@@ -34,3 +34,12 @@ async def get_eth_nft_balance(wallet_address, next_page_token=None):
             response  = await resp.json()
 
     return response
+
+async def get_nft_collection_details(contract_address):
+    headers = {'X-API-Key': os.environ["BLOCK_DAEMON_SECRET"] }
+    params = {"contract_address": contract_address}
+    async with aiohttp.ClientSession() as session:
+        async with session.get("https://svc.blockdaemon.com/nft/v1/ethereum/mainnet/collection", params=params, headers=headers) as resp:
+            response  = await resp.json()
+    return response
+
