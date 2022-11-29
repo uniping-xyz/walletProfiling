@@ -9,56 +9,9 @@ from utils.errors import CustomError
 from loguru import logger
 import re
 from caching.cache_utils import cache_validity, get_cache, set_cache, delete_cache
+from 
 
 TOKEN_TAGS_BP = Blueprint("tags", url_prefix='/tags/', version=1)
-
-
-
-async def get_ethereum_tags(lubabase_api_key):
-    url = "https://q.luabase.com/run"
-
-    payload = {
-    "block": {
-        "data_uuid": "958a4cdf11684438942e591e9bdb6e18"
-    },
-    "api_key": lubabase_api_key,
-    "parameters": {
-        "label": {
-            "value": "defi",
-            "type": "value"
-        }
-    }
-    }
-    headers = {"content-type": "application/json"}
-    async with aiohttp.ClientSession() as session:
-        async with session.post(url, json=payload, headers=headers) as resp:
-            data  = await resp.json()
-    return data["data"]
-
-
-
-async def get_tagged_ethereum_contracts(luabase_api_key, tag):
-    url = "https://q.luabase.com/run"
-
-    payload = {
-    "block": {
-        "data_uuid": "99310c5e8af9418197027ba9c8af3e24",
-        "details": {
-            "parameters": {
-                "label": {
-                    "value": tag,
-                    "type": "value"
-                }
-            }
-        }
-    },
-    "api_key": luabase_api_key
-    }
-    headers = {"content-type": "application/json"}
-    async with aiohttp.ClientSession() as session:
-        async with session.post(url, json=payload, headers=headers) as resp:
-            data  = await resp.json()
-    return data["data"]
 
 
 async def tags_cache_validity(app: object, caching_key: str, request_args: dict)-> object:
