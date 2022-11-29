@@ -1,7 +1,7 @@
 
-
-
-async def search_erc20_text(session, luabase_api_key, text):
+import os
+import aiohttp
+async def search_erc20_text(session,  text):
     url = "https://q.luabase.com/run"
 
     payload = {
@@ -21,7 +21,7 @@ async def search_erc20_text(session, luabase_api_key, text):
                         }
         }
     },
-     "api_key": luabase_api_key
+     "api_key": os.environ['LUABASE_API_KEY']
     }
     headers = {"content-type": "application/json"}
     # async with session.post(url, json={'test': 'object'})
@@ -31,7 +31,7 @@ async def search_erc20_text(session, luabase_api_key, text):
         data =  await response.json()
     return data["data"]
 
-async def search_erc721_text(session, luabase_api_key, text):
+async def search_erc721_text(session, text):
     url = "https://q.luabase.com/run"
 
     payload = {
@@ -51,7 +51,8 @@ async def search_erc721_text(session, luabase_api_key, text):
                         }
         }
     },
-     "api_key": luabase_api_key
+     "api_key": os.environ['LUABASE_API_KEY']
+
     }
     headers = {"content-type": "application/json"}
     async with session.post(url, json=payload, headers=headers) as response:
@@ -59,7 +60,7 @@ async def search_erc721_text(session, luabase_api_key, text):
 
     return data["data"]
 
-async def search_erc1155_text(session, luabase_api_key, text):
+async def search_erc1155_text(session, text):
     url = "https://q.luabase.com/run"
 
     payload = {
@@ -79,7 +80,7 @@ async def search_erc1155_text(session, luabase_api_key, text):
                         }
         }
     },
-     "api_key": luabase_api_key
+     "api_key": os.environ['LUABASE_API_KEY']
     }
     headers = {"content-type": "application/json"}
 

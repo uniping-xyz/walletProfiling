@@ -155,13 +155,11 @@ async def search_text(request):
 
     async with aiohttp.ClientSession() as session:
         result = await asyncio.gather(*[
-                luabase_text_search.search_erc20_text(session, request.app.config.LUABASE_API_KEY, request.args.get("text")),
-                luabase_text_search.search_erc721_text(session, request.app.config.LUABASE_API_KEY, request.args.get("text")), 
-                luabase_text_search.search_erc1155_text(session, request.app.config.LUABASE_API_KEY, request.args.get("text"))],                
+                luabase_text_search.search_erc20_text(session, request.args.get("text")),
+                luabase_text_search.search_erc721_text(session, request.args.get("text")), 
+                luabase_text_search.search_erc1155_text(session,request.args.get("text"))],                
                 return_exceptions=True)
 
-    logger.success(result)
-    logger.success(f"Length of the result returned is {len(result)}")
     return Response.success_response(data=result)
 
 
