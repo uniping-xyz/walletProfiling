@@ -9,7 +9,7 @@ from utils.errors import CustomError
 from loguru import logger
 import re
 from caching.cache_utils import cache_validity, get_cache, set_cache, delete_cache
-from 
+from find_addresses.external_calls import luabase_token_tags 
 
 TOKEN_TAGS_BP = Blueprint("tags", url_prefix='/tags/', version=1)
 
@@ -18,7 +18,7 @@ async def tags_cache_validity(app: object, caching_key: str, request_args: dict)
     CACHE_EXPIRY = app.config.CACHING_TTL['LEVEL_FIVE']
     tags_cache_validity  = await cache_validity(app.config.REDIS_CLIENT, caching_key, CACHE_EXPIRY)
     if not tags_cache_validity:
-        eth_tags = await get_ethereum_tags(app.config.LUABASE_API_KEY)
+        eth_tags = await luabase_token_tags.get_ethereum_tags()
         await set_cache(app.config.REDIS_CLIENT, caching_key, [e["label"] for e in eth_tags])
         return [e["label"] for e in eth_tags]
     data = await get_cache(app.config.REDIS_CLIENT,caching_key)
@@ -67,7 +67,7 @@ async def tags_contracts_cache_validity(app: object, caching_key: str, request_a
     CACHE_EXPIRY = app.config.CACHING_TTL['LEVEL_EIGHT']
     tags_contracts_cache  = await cache_validity(app.config.REDIS_CLIENT, caching_key, CACHE_EXPIRY)
     if not tags_contracts_cache:
-        data = await get_tagged_ethereum_contracts(app.config.LUABASE_API_KEY, request_args.get("tag"))
+        data = await luabase_token_tags.get_tagged_ethereum_contracts(request_args.get("tag"))
         await set_cache(app.config.REDIS_CLIENT, caching_key, data)
         return data
     data = await get_cache(app.config.REDIS_CLIENT, caching_key)
@@ -93,5 +93,5 @@ async def find_tagged_contracts(request):
         logger.info(f"Here is the caching key {caching_key}")
         data = await tags_contracts_cache_validity(request.app, caching_key, request.args)
     else:
-        data = await  get_tagged_ethereum_contracts(request.app.config.LUABASE_API_KEY, request.args.get("tag"))
+        data = await  luabase_token_tags.get_tagged_ethereum_contracts(request.args.get("tag"))
     return Response.success_response(data=data)
