@@ -18,7 +18,7 @@ from find_addresses.db_calls.erc20.ethereum import search_contract_address as er
 from find_addresses.db_calls.erc721.ethereum import search_contract_address as erc721_eth_search
 from find_addresses.db_calls.erc1155.ethereum import search_contract_address as erc1155_eth_search
 from find_addresses.external_calls import alchemy_calls
-from find_addresses.external_calls import luabase_wallet_stats
+from find_addresses.external_calls import luabase_wallet_stats, luabase_contract_search
 import re
 from caching.cache_utils import cache_validity, get_cache, set_cache, delete_cache
 from find_addresses.external_calls import blockdaemon_calls
@@ -188,3 +188,40 @@ async def txs(request):
     # await fetch_nft_balance(request.app, request.args, "ethereum")
          
     return Response.success_response(data=res)
+
+@USER_TOKEN_BALANCE_BP.get('most_interactions')
+async def txs(request):
+    if not request.args.get('wallet_address'):
+        raise CustomError("Wallet address is required")
+
+    if not request.args.get('chain') in request.app.config["SUPPORTED_CHAINS"]:
+        raise CustomError("chain is required")
+
+    wallet_address = request.args.get('wallet_address')
+    chain = request.args.get('chain')
+    outgoing = await luabase_wallet_stats.wallet_most_outgoing_interactions(wallet_address, 180)
+    incoming = await luabase_wallet_stats.wallet_most_incoming_interactions(wallet_address, 180)
+
+    # await fetch_nft_balance(request.app, request.args, "ethereum")
+         
+    return Response.success_response(data={"outgoing": outgoing, "incoming": incoming})
+
+# async def fetch_contract_standard_type(app, contract_address):
+#     result = erc20_eth_search(app, contract_address):
+
+#     response = await luabase_contract_search.search_contract_contracts_table(request_args.get("contract_address"))
+#     if not response:
+#         logger.error(f'{request_args.get("contract_address")} ERC_STANDARD=[{None }]')
+#         return None   
+#     for (key, standard) in [("is_erc20", "erc20"), ("is_erc721", "erc721"), ("is_erc1155", "erc1155")]:
+#         if response[0].get(key):
+#             logger.success(f'{request_args.get("contract_address")} ERC_STANDARD=[{standard}]')
+#             return standard
+#     logger.warning("Probabaly a Proxy contract found")
+
+#     _response = await find_standard_if_proxy(request_args.get("contract_address"))
+#     logger.success(f'{request_args.get("contract_address")} ERC_STANDARD=[{_response }]')
+#     if _response:
+#         return _response
+#     logger.error(f'{request_args.get("contract_address")} ERC_STANDARD=[{None }]')
+#     return None
