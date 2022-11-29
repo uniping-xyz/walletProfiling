@@ -1,7 +1,7 @@
 
 import aiohttp
-
-async def topERC20(luabase_api_key, chain, limit, offset, number_of_days):
+import os
+async def topERC20( chain, limit, offset, number_of_days):
     url = "https://q.luabase.com/run"
     payload = {
         "block": {
@@ -28,15 +28,16 @@ async def topERC20(luabase_api_key, chain, limit, offset, number_of_days):
                 }
             }
         },
-        "api_key": luabase_api_key,
+        "api_key": os.environ["LUABASE_API_KEY"],
     }
     headers = {"content-type": "application/json"}
     async with aiohttp.ClientSession() as session:
         async with session.post(url, json=payload, headers=headers) as resp:
             data  = await resp.json() 
+    print (data)
     return data["data"]
 
-async def topERC1155(luabase_api_key, chain, limit, offset, number_of_days):
+async def topERC1155(chain, limit, offset, number_of_days):
     STANDARD = 'erc1155'
     url = "https://q.luabase.com/run"
 
@@ -69,7 +70,7 @@ async def topERC1155(luabase_api_key, chain, limit, offset, number_of_days):
                 }
             }
         },
-        "api_key": luabase_api_key,
+        "api_key": os.environ["LUABASE_API_KEY"],
     }
 
     headers = {"content-type": "application/json"}
@@ -78,7 +79,7 @@ async def topERC1155(luabase_api_key, chain, limit, offset, number_of_days):
             data  = await resp.json()
     return data["data"]
 
-async def topERC721(luabase_api_key, chain, limit, offset, number_of_days):
+async def topERC721(chain, limit, offset, number_of_days):
     STANDARD = 'erc721'
     url = "https://q.luabase.com/run"
 
@@ -111,7 +112,7 @@ async def topERC721(luabase_api_key, chain, limit, offset, number_of_days):
                 }
             }
         },
-        "api_key": luabase_api_key,
+        "api_key": os.environ["LUABASE_API_KEY"],
     }
 
     headers = {"content-type": "application/json"}

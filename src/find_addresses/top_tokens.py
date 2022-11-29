@@ -84,7 +84,7 @@ async def most_popular_token_caching(app: object, caching_key: str, request_args
 
 async def fetch_data(app: object, request_args: RequestParameters) -> any:
     if request_args.get("erc_type") ==  "ERC20":
-        results = await luabase_trending.topERC20(app.config.LUABASE_API_KEY,  
+        results = await luabase_trending.topERC20(  
                         request_args.get("chain"), request_args.get("limit"), 
                         request_args.get("offset"), request_args.get("number_of_days"))
         for e in results:
@@ -95,7 +95,7 @@ async def fetch_data(app: object, request_args: RequestParameters) -> any:
 
 
     elif request_args.get("erc_type") ==  "ERC721":
-        results = await luabase_trending.topERC721(app.config.LUABASE_API_KEY,  
+        results = await luabase_trending.topERC721(  
                         request_args.get("chain"), request_args.get("limit"), 
                         request_args.get("offset"), request_args.get("number_of_days")) 
         for e in results:
@@ -105,7 +105,7 @@ async def fetch_data(app: object, request_args: RequestParameters) -> any:
                 if res:
                     e.update({"name": res.get("name")})
     else:
-        results = await luabase_trending.topERC1155(app.config.LUABASE_API_KEY,  
+        results = await luabase_trending.topERC1155(  
                         request_args.get("chain"), request_args.get("limit"), 
                         request_args.get("offset"), request_args.get("number_of_days"))
         for e in results:
