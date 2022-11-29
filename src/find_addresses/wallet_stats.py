@@ -12,8 +12,8 @@ from google.cloud import bigquery
 from sanic.request import RequestParameters
 import requests
 from caching.cache_utils import cache_validity, get_cache, set_cache, delete_cache
-from data.populate_coingecko import check_coingecko_tokens_staleness
-from data.populate_blockdaemon import  check_blockDaemon_tokens_staleness
+from populate_data.populate_coingecko import check_coingecko_tokens_staleness
+from populate_data.populate_blockdaemon import  check_blockDaemon_tokens_staleness
 from find_addresses.db_calls.erc20.ethereum import search_contract_address as erc20_eth_search
 from find_addresses.db_calls.erc721.ethereum import search_contract_address as erc721_eth_search
 from find_addresses.db_calls.erc1155.ethereum import search_contract_address as erc1155_eth_search

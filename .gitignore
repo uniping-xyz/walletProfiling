@@ -15,3 +15,4 @@ config.json
 config/*
 data/*
 *.env
+gcloud_secrets.json

@@ -12,9 +12,9 @@ from eth_utils import to_checksum_address
 from sanic.request import RequestParameters
 from find_addresses.external_calls import luabase_token_holders
 from caching.cache_utils import cache_validity, get_cache, set_cache
-from data.populate_blockdaemon import  check_blockDaemon_tokens_staleness, \
+from populate_data.populate_blockdaemon import  check_blockDaemon_tokens_staleness, \
             populate_erc721_blockdaemon, populate_erc1155_blockdaemon
-from data.populate_coingecko import check_coingecko_tokens_staleness, fetch_coingecko_token_list
+from populate_data.populate_coingecko import check_coingecko_tokens_staleness, fetch_coingecko_token_list
 from find_addresses.external_calls import luabase_text_search 
 from find_addresses.external_calls import luabase_contract_search
 
@@ -169,7 +169,7 @@ async def search_text(request):
 
 @TOKEN_SEARCH_BP.get('populate_tokens')
 async def populate_tokens(request):
-    # request.app.add_task(populate_erc721_blockdaemon(request.app))
+    request.app.add_task(populate_erc721_blockdaemon(request.app))
     request.app.add_task(populate_erc1155_blockdaemon(request.app))
-    # request.app.add_task(fetch_coingecko_token_list(request.app))
+    request.app.add_task(fetch_coingecko_token_list(request.app))
     return Response.success_response(data={})
