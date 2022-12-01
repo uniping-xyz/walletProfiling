@@ -95,7 +95,7 @@ async def floor_price_caching(app: object, caching_key: str, caching_ttl:int, re
 @is_subscribed()
 async def floor_price(request):
     caching_ttl =  request.app.config.CACHING_TTL['LEVEL_FIVE']
-    query_string: str = make_query_string(request.args, ["chain", "wallet_address"])
+    query_string: str = make_query_string(request.args, ["chain", "token_address"])
     caching_key = f"{request.route.path}?{query_string}"
     
     if not request.args.get("token_address") :
