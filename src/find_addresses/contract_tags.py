@@ -47,7 +47,7 @@ async def find_tags(request):
         logger.info(f"Here is the caching key {caching_key}")
         data = await tags_cache_validity(request.app, caching_key, request.args)
     else:
-        data = await  get_ethereum_tags(request.app.config.LUABASE_API_KEY)
+        data = await  luabase_token_tags.get_ethereum_tags(request.app.config.LUABASE_API_KEY)
 
     result = list(filter(r.match, data)) # Read Note below
 

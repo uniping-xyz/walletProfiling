@@ -13,8 +13,6 @@ services:
         logging:
             driver: "none"
         restart: on-failure
-        networks:
-          - wallet-profile
     wallet-profile-app-server:
         build:
             context: .
@@ -24,12 +22,7 @@ services:
 
         depends_on:
             - wallet-profile-mongodb-server
-        networks:
-          - wallet-profile
 
-networks:
-  wallet-profile:
-    driver: bridge
 
 volumes:
     data:

@@ -73,7 +73,7 @@ async def most_popular(request):
 
 async def most_popular_token_caching(app: object, caching_key: str, request_args: dict) -> any: 
     cache_valid = await cache_validity(app.config.REDIS_CLIENT, caching_key, 
-                            app.config.CACHING_TTL['LEVEL_ZERO'])
+                            app.config.CACHING_TTL['LEVEL_FOUR'])
 
     if not cache_valid:
         data = await fetch_data(app, request_args)

@@ -62,7 +62,7 @@ async def search_contract_address(request):
 
 async def contract_standard_type_caching(app: object, caching_key: str, request_args: dict) -> any: 
     cache_valid = await cache_validity(app.config.REDIS_CLIENT, caching_key, 
-                            app.config.CACHING_TTL['LEVEL_ZERO'])
+                            app.config.CACHING_TTL['LEVEL_EIGHT'])
 
     if not cache_valid:
         data = await fetch_contract_standard_type(app, request_args)
