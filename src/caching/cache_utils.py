@@ -38,5 +38,16 @@ async def set_cache(redis_client: object, key: str, unserialized_data: any):
     logger.success(f"Cache set for key=[{key}]")
     return 
 
+"""
+
+We started uniping with a different problem around 6 months back but then pivoted to 
+another problem around 3 months back after listening to a lot of potential customers. 
+On Polygon only, There are around 35000 apps and 142 million unique addresses, growing at 400% . 
+While talking to some of the dapps, we realised that even after spending a lot of money on marketing, 
+they arent getting any conversions because there are no social identities attached with the wallet addressses.
+
+
+"""
+
 
     

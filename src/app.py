@@ -4,7 +4,9 @@ from sanic import Sanic
 from motor.motor_asyncio import AsyncIOMotorClient
 from sanic import Blueprint
 from loguru import logger
-from redis import asyncio as aioredis
+# from redis import asyncio as aioredis
+# import aioredis
+import redis.asyncio as redis
 from branca import Branca
 import binascii
 from find_addresses.common_address_different_tokens import CMN_ADDR_DIFF_TKNS
@@ -97,13 +99,6 @@ async def load_db_secrets():
     logger.success(f"Total ETH ERC1155 tokens in DB  {await app.config.ETH_ERC1155_TOKENS.count_documents({})}")
     logger.success(f"Total ETH ERC20 tokens in DB  {await app.config.ETH_ERC20_TOKENS.count_documents({})}")
 
-    
-    # logger.success(f"Total tokens in DB  {await app.config.TOKENS.count_documents({})}")
-
-
-    # await create_index(app.config.TOKENS, "ethereum")
-    # await create_index(app.config.TOKENS, "polygon")
-    # await create_index(app.config.TOKENS, "tokens")
 
     await create_index(app.config.ETH_ERC20_TOKENS, "tokens")
     await create_index(app.config.ETH_ERC20_TOKENS, "contracts")
@@ -129,8 +124,6 @@ async def create_index(collection, field):
                 name=f"{field}_index",
                 default_language='english')
 
-
-
 @app.after_server_start
 async def after_server_start(app, loop):
     ENVIRONMENT = os.environ['APP_ENV']
@@ -144,15 +137,24 @@ async def after_server_start(app, loop):
     app.config.bq_polygon_table = os.environ["BQ_POLYGON_TABLE_NAME"]
     app.config.bq_eth_table = os.environ["BQ_ETH_TABLE_NAME"]
 
-    
-    redis = aioredis.from_url(
-        os.environ["REDIS_URL"], encoding="utf-8", decode_responses=True
-    )
+    # redis = aioredis.from_url(
+    #     os.environ["REDIS_URL"], encoding="utf-8", decode_responses=True
+    # )
+    # app.config.REDIS_CLIENT = redis.client()
 
-    app.config.REDIS_CLIENT = redis.client()
+    # pool = aioredis.ConnectionPool.from_url(
+    #     os.environ["REDIS_URL"], decode_responses=True
+    # )
+    # app.config.REDIS_CLIENT = aioredis.Redis(connection_pool=pool)
+
+#     pool = redis.ConnectionPool(host='localhost', port=6379, db=0)
+# >>> r = redis.Redis(connection_pool=pool)
+    app.config.REDIS_CLIENT = redis.Redis.from_url(os.environ["REDIS_URL"])
+    print(f"Redis ping successful: {await app.config.REDIS_CLIENT.ping()}")
+
+
+
     return
-
-
 
 if __name__ == '__main__':
 

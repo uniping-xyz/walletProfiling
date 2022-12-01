@@ -20,7 +20,10 @@ services:
           - wallet-profile
         volumes:
             - ./src:/pythonapp/src:ro
-
+        ports:
+            - 8006:8080
+        expose:
+            - 8080
     wallet-profile-rediscache-server:
         image: redis:6.2-alpine
         container_name: wallet-profile-rediscache-server

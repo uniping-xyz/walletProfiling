@@ -171,7 +171,7 @@ async def nft_balances(request):
 
 #____________________________ Txs/Day by wallet address ______________________________________
 
-async def txs_per_day_caching(app: object, caching_key: str, caching_ttl:int, request_args: dict) -> any: 
+async def txs_per_day_caching(app: object, caching_key: str, caching_ttl:int, request_args: dict) -> any:
     cache_valid = await cache_validity(app.config.REDIS_CLIENT, caching_key, caching_ttl)
 
     if not cache_valid:
