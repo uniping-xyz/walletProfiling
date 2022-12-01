@@ -17,7 +17,7 @@ import re
 from caching.cache_utils import cache_validity, get_cache, set_cache, delete_cache
 
 TOKEN_STATS_BP = Blueprint("stats", url_prefix='/token', version=1)
-
+NUMBER_OF_DAYS = 30
 
 def make_query_string(request_args: dict, args_list: list) -> str:
     query_string = ""
@@ -66,6 +66,7 @@ async def token_stats_caching(app: object, caching_key: str, request_args: dict)
     return json.loads(result)
 
 
+
 @TOKEN_STATS_BP.get('metadata')
 @is_subscribed()
 async def token_metadata(request):
@@ -75,10 +76,29 @@ async def token_metadata(request):
     
     return Response.success_response(data=response)
 
+#____________________________ floor_price of contract address ______________________________________
+
+
+async def floor_price_caching(app: object, caching_key: str, caching_ttl:int, request_args: dict) -> any: 
+    cache_valid = await cache_validity(app.config.REDIS_CLIENT, caching_key, caching_ttl)
+
+    if not cache_valid:
+        data = await luabase_floor_price.floor_price_per_day(request_args.get("token_address"), NUMBER_OF_DAYS)
+        if data: #only set cache when data is not empty
+            await set_cache(app.config.REDIS_CLIENT, caching_key, data)
+        return data
+    result= await get_cache(app.config.REDIS_CLIENT, caching_key)
+    return json.loads(result)
+
+
 @TOKEN_STATS_BP.get('floor_price')
 @is_subscribed()
-async def token_metadata(request):
+async def floor_price(request):
+    caching_ttl =  request.app.config.CACHING_TTL['LEVEL_FIVE']
+    query_string: str = make_query_string(request.args, ["chain", "wallet_address"])
+    caching_key = f"{request.route.path}?{query_string}"
+    
     if not request.args.get("token_address") :
         raise CustomError("token_address is required ")
-    response = await luabase_floor_price.floor_price_per_day(request.args.get("token_address"))    
-    return Response.success_response(data=response)
+    response = await floor_price_caching(request.app, caching_key, caching_ttl, request.args)
+    return Response.success_response(data=response, days=NUMBER_OF_DAYS, caching_ttl=caching_ttl)
