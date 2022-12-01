@@ -4,16 +4,20 @@ version: '3.3'
 services:
     wallet-profile-mongodb-server:
         env_file:
-          - ./src/config/mainnet/db_secrets.env
+          - ./src/config/devnet/db_secrets.env
+          - ./src/config/devnet/app_secrets.env
         volumes:
           - ./data/mongo:/data/db
         ports:
           - 27017:27017
 
     wallet-profile-app-server:
-        environment:
-            - APP_ENV=mainnet
+        env_file:
+          - ./src/config/devnet/db_secrets.env
+          - ./src/config/devnet/app_secrets.env
         ports:
             - 8080:8080
+        expose:
+            - 8080
         volumes:
             - ./src:/pythonapp/src:ro
