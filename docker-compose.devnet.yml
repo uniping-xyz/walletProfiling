@@ -10,7 +10,8 @@ services:
           - ./data/mongo:/data/db
         ports:
           - 8012:27017
-
+        networks:
+          - wallet-profile
     wallet-profile-app-server:
         env_file:
           - ./src/config/devnet/db_secrets.env
@@ -21,6 +22,8 @@ services:
             - 8006
         volumes:
             - ./src:/pythonapp/src:ro
+        networks:
+          - wallet-profile
 
     wallet-profile-rediscache-server:
         image: redis:6.2-alpine
@@ -33,3 +36,8 @@ services:
           - ./data/redis:/data
         networks:
           - wallet-profile
+
+
+networks:
+  wallet-profile:
+    driver: bridge

@@ -7,23 +7,27 @@ import aiohttp
 from eth_utils import to_checksum_address
 
 
-async def wallet_txs_per_day(wallet_address):
+async def wallet_txs_per_day(wallet_address, number_of_days):
 
     url = "https://q.luabase.com/run"
 
     payload = {
-        "block": {
-            "data_uuid": "55696395705b484ba8ce29c50c6ad4d7",
-            "details": {
-                "limit": 2000,
-                "parameters": {
-                    "wallet_address": {
-                        "value": to_checksum_address(wallet_address),
-                        "type": "value"
-                    }
+    "block": {
+        "data_uuid": "55696395705b484ba8ce29c50c6ad4d7",
+        "details": {
+            "limit": 2000,
+            "parameters": {
+                "days": {
+                    "type": "value",
+                    "value": str(number_of_days)
+                },
+                "wallet_address": {
+                    "type": "value",
+                    "value": wallet_address
                 }
             }
-        },
+        }
+    },
         "api_key": os.environ["LUABASE_API_KEY"],
     }
     headers = {"content-type": "application/json"}
@@ -33,22 +37,26 @@ async def wallet_txs_per_day(wallet_address):
     return data["data"]
 
 
-async def wallet_txs(wallet_address):
+async def wallet_txs(wallet_address, number_of_days):
 
     url = "https://q.luabase.com/run"
 
     payload = {
-        "block": {
-            "data_uuid": "fcde6f7adee3496ebb31bd12053c9c18",
-            "details": {
-                "limit": 2000,
-                "parameters": {
-                    "wallet_address": {
-                        "value": to_checksum_address(wallet_address),
-                        "type": "value"
-                    }
+    "block": {
+        "data_uuid": "fcde6f7adee3496ebb31bd12053c9c18",
+        "details": {
+            "limit": 2000,
+            "parameters": {
+                "days": {
+                    "type": "value",
+                    "value": str(number_of_days)
+                },
+                "wallet_address": {
+                    "type": "value",
+                    "value": wallet_address
                 }
             }
+        }
         },
         "api_key": os.environ["LUABASE_API_KEY"],
     }
@@ -100,11 +108,11 @@ async def wallet_most_incoming_interactions(wallet_address, number_of_days):
                 "limit": 2000,
                 "parameters": {
                     "wallet_address": {
-                        "value": "0x9c5083dd4838E120Dbeac44C052179692Aa5dAC5",
+                        "value": wallet_address,
                         "type": "value"
                     },
                     "days": {
-                        "value": "180",
+                        "value": str(number_of_days),
                         "type": "value"
                     }
                 }

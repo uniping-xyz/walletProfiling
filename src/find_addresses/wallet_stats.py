@@ -24,7 +24,7 @@ from caching.cache_utils import cache_validity, get_cache, set_cache, delete_cac
 from find_addresses.external_calls import blockdaemon_calls
 
 USER_TOKEN_BALANCE_BP = Blueprint("wallet", url_prefix='/wallet', version=1)
-
+NUMBER_OF_DAYS = 90
 def make_query_string(request_args: dict, args_list: list) -> str:
     query_string = ""
     for (key, value) in request_args.items():
@@ -37,9 +37,8 @@ def make_query_string(request_args: dict, args_list: list) -> str:
 
 
 
-async def erc20_balance_caching(app: object, caching_key: str, request_args: dict) -> any: 
-    cache_valid = await cache_validity(app.config.REDIS_CLIENT, caching_key, 
-                            app.config.CACHING_TTL['LEVEL_FOUR'])
+async def erc20_balance_caching(app: object, caching_key: str, caching_ttl: int, request_args: dict) -> any: 
+    cache_valid = await cache_validity(app.config.REDIS_CLIENT, caching_key, caching_ttl)
 
     if not cache_valid:
         data = await get_erc20_balance(app, request_args)
@@ -75,6 +74,8 @@ async def get_erc20_balance(app: object, request_args: RequestParameters) -> lis
 @USER_TOKEN_BALANCE_BP.get('erc20_balances')
 @is_subscribed()
 async def erc20_balances(request):
+    caching_ttl =  request.app.config.CACHING_TTL['LEVEL_THREE']
+
     wallet_address = request.args.get('wallet_address')
     chain = request.args.get('chain')
 
@@ -90,15 +91,16 @@ async def erc20_balances(request):
 
     caching_key = f"{request.route.path}?{query_string}"
     logger.info(f"Here is the caching key {caching_key}")
-    data = await erc20_balance_caching(request.app, caching_key, request.args)
+    data = await erc20_balance_caching(request.app, caching_key, caching_ttl, request.args)
        
-    return Response.success_response(data=data)
+    return Response.success_response(data=data, caching_ttl=caching_ttl, days=0)
 
 
 """
 Get assets related to a wallet address from Block Daemon
 """
 async def fetch_nft_balance(app, request_args) -> list:
+
     response = await blockdaemon_calls.get_eth_nft_balance(request_args.get("wallet_address"), request_args.get("next_page_token"))
 
     if not response:
@@ -117,23 +119,30 @@ async def fetch_nft_balance(app, request_args) -> list:
         if token.get("contract_name") or token.get("name") != "":
             result.append(token)
     
-    return {"result": result, "next_page_token": response['meta']['paging']['next_page_token']}
+    if response.get('meta'):
+        if response.get('meta').get('paging'):
+            next_page_token = response['meta']['paging']['next_page_token']
+    else:
+            next_page_token = None
 
-async def nft_balance_caching(app: object, caching_key: str, request_args: dict) -> any: 
-    cache_valid = await cache_validity(app.config.REDIS_CLIENT, caching_key, 
-                            app.config.CACHING_TTL['LEVEL_FOUR'])
+    return {"result": result, "next_page_token": next_page_token}
+
+async def nft_balance_caching(app: object, caching_key: str, caching_ttl:int, request_args: dict) -> any: 
+    cache_valid = await cache_validity(app.config.REDIS_CLIENT, caching_key, caching_ttl)
 
     if not cache_valid:
         data = await fetch_nft_balance(app, request_args)
         if data: #only set cache when data is not empty
             await set_cache(app.config.REDIS_CLIENT, caching_key, data)
         return data
-    result= await get_cache(app.config.REDIS_CLIENT, caching_key)
+    result = await get_cache(app.config.REDIS_CLIENT, caching_key)
     return json.loads(result)
 
 
 @USER_TOKEN_BALANCE_BP.get('nft_balances')
 async def nft_balances(request):
+    caching_ttl =  request.app.config.CACHING_TTL['LEVEL_THREE']
+
     if not request.args.get('wallet_address'):
         raise CustomError("Wallet address is required")
 
@@ -154,13 +163,30 @@ async def nft_balances(request):
 
     caching_key = f"{request.route.path}?{query_string}"
     logger.info(f"Here is the caching key {caching_key}")
-    data = await nft_balance_caching(request.app, caching_key, request.args)
+    data = await nft_balance_caching(request.app, caching_key, caching_ttl, request.args)
        
-    return Response.success_response(data=data)
+    return Response.success_response(data=data, caching_ttl=caching_ttl, days=0)
+
+
+
+#____________________________ Txs/Day by wallet address ______________________________________
+
+async def txs_per_day_caching(app: object, caching_key: str, caching_ttl:int, request_args: dict) -> any: 
+    cache_valid = await cache_validity(app.config.REDIS_CLIENT, caching_key, caching_ttl)
+
+    if not cache_valid:
+        data = await luabase_wallet_stats.wallet_txs_per_day(request_args.get("wallet_address"), NUMBER_OF_DAYS)
+        if data: #only set cache when data is not empty
+            await set_cache(app.config.REDIS_CLIENT, caching_key, data)
+        return data
+    result= await get_cache(app.config.REDIS_CLIENT, caching_key)
+    return json.loads(result)
 
 
 @USER_TOKEN_BALANCE_BP.get('txs_per_day')
 async def txs_per_day(request):
+    caching_ttl =  request.app.config.CACHING_TTL['LEVEL_THREE']
+
     if not request.args.get('wallet_address'):
         raise CustomError("Wallet address is required")
 
@@ -169,59 +195,74 @@ async def txs_per_day(request):
 
     wallet_address = request.args.get('wallet_address')
     chain = request.args.get('chain')
-    res = await luabase_wallet_stats.wallet_txs_per_day(wallet_address)
+    query_string: str = make_query_string(request.args, ["chain", "wallet_address"])
+    caching_key = f"{request.route.path}?{query_string}"
+    logger.info(f"Here is the caching key for Txs/Day  by wallet adress {caching_key}")
+
+    data = await txs_per_day_caching(request.app, caching_key, caching_ttl, request.args)
     # await fetch_nft_balance(request.app, request.args, "ethereum")
          
-    return Response.success_response(data=res)
+    return Response.success_response(data=data, caching_ttl=caching_ttl, days=NUMBER_OF_DAYS)
+
+#____________________________ Txs by wallet address ____________________________________________
+
+async def txs_caching(app: object, caching_key: str, caching_ttl:int, request_args: dict) -> any: 
+    cache_valid = await cache_validity(app.config.REDIS_CLIENT, caching_key, caching_ttl)
+
+    if not cache_valid:
+        data = await luabase_wallet_stats.wallet_txs(request_args.get("wallet_address"), NUMBER_OF_DAYS)
+        if data:
+            await set_cache(app.config.REDIS_CLIENT, caching_key, data)
+        return data
+    result= await get_cache(app.config.REDIS_CLIENT, caching_key)
+    return json.loads(result)
 
 @USER_TOKEN_BALANCE_BP.get('txs')
 async def txs(request):
+    caching_ttl =  request.app.config.CACHING_TTL['LEVEL_THREE']
+
     if not request.args.get('wallet_address'):
         raise CustomError("Wallet address is required")
 
     if not request.args.get('chain') in request.app.config["SUPPORTED_CHAINS"]:
         raise CustomError("chain is required")
+    query_string: str = make_query_string(request.args, ["chain", "wallet_address"])
+    caching_key = f"{request.route.path}?{query_string}"
+    logger.info(f"Here is the caching key for transactions by wallet adress {caching_key}")
 
-    wallet_address = request.args.get('wallet_address')
-    chain = request.args.get('chain')
-    res = await luabase_wallet_stats.wallet_txs(wallet_address)
-    # await fetch_nft_balance(request.app, request.args, "ethereum")
+    data = await txs_caching(request.app, caching_key, caching_ttl, request.args)
          
-    return Response.success_response(data=res)
+    return Response.success_response(data=data, caching_ttl=caching_ttl, days=NUMBER_OF_DAYS)
+
+#____________________________ most_interactions ____________________________________________
+async def most_interactions_caching(app: object, caching_key: str, caching_ttl: int, request_args: dict) -> any: 
+    cache_valid = await cache_validity(app.config.REDIS_CLIENT, caching_key, caching_ttl)
+    if not cache_valid:
+        outgoing = await luabase_wallet_stats.wallet_most_outgoing_interactions(request_args.get("wallet_address"), NUMBER_OF_DAYS)
+        incoming = await luabase_wallet_stats.wallet_most_incoming_interactions(request_args.get("wallet_address"), NUMBER_OF_DAYS)
+
+        data={"outgoing": outgoing, "incoming": incoming}
+        await set_cache(app.config.REDIS_CLIENT, caching_key, data)
+        return data
+    result= await get_cache(app.config.REDIS_CLIENT, caching_key)
+    return json.loads(result)
+
 
 @USER_TOKEN_BALANCE_BP.get('most_interactions')
-async def txs(request):
+async def most_interactions(request):
+    caching_ttl =  request.app.config.CACHING_TTL['LEVEL_THREE']
+
     if not request.args.get('wallet_address'):
         raise CustomError("Wallet address is required")
 
     if not request.args.get('chain') in request.app.config["SUPPORTED_CHAINS"]:
         raise CustomError("chain is required")
 
-    wallet_address = request.args.get('wallet_address')
-    chain = request.args.get('chain')
-    outgoing = await luabase_wallet_stats.wallet_most_outgoing_interactions(wallet_address, 180)
-    incoming = await luabase_wallet_stats.wallet_most_incoming_interactions(wallet_address, 180)
+    query_string: str = make_query_string(request.args, ["chain", "wallet_address"])
+    caching_key = f"{request.route.path}?{query_string}"
+    logger.info(f"Here is the caching key for wallet_address {caching_key}")
 
+    data = await most_interactions_caching(request.app, caching_key, caching_ttl, request.args)
     # await fetch_nft_balance(request.app, request.args, "ethereum")
          
-    return Response.success_response(data={"outgoing": outgoing, "incoming": incoming})
-
-# async def fetch_contract_standard_type(app, contract_address):
-#     result = erc20_eth_search(app, contract_address):
-
-#     response = await luabase_contract_search.search_contract_contracts_table(request_args.get("contract_address"))
-#     if not response:
-#         logger.error(f'{request_args.get("contract_address")} ERC_STANDARD=[{None }]')
-#         return None   
-#     for (key, standard) in [("is_erc20", "erc20"), ("is_erc721", "erc721"), ("is_erc1155", "erc1155")]:
-#         if response[0].get(key):
-#             logger.success(f'{request_args.get("contract_address")} ERC_STANDARD=[{standard}]')
-#             return standard
-#     logger.warning("Probabaly a Proxy contract found")
-
-#     _response = await find_standard_if_proxy(request_args.get("contract_address"))
-#     logger.success(f'{request_args.get("contract_address")} ERC_STANDARD=[{_response }]')
-#     if _response:
-#         return _response
-#     logger.error(f'{request_args.get("contract_address")} ERC_STANDARD=[{None }]')
-#     return None
+    return Response.success_response(data=data, caching_ttl=caching_ttl, days=NUMBER_OF_DAYS)

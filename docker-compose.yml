@@ -19,7 +19,6 @@ services:
             dockerfile: DockerFiles/app/DockerFile
         image: wallet-profile-app-server
         container_name: wallet-profile-app-server
-
         depends_on:
             - wallet-profile-mongodb-server
 

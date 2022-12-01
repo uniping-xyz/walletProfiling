@@ -110,13 +110,15 @@ def json_handler():
         
 class Response:
     @staticmethod
-    def success_response(message=None, count=0, data={}):
+    def success_response(message=None, caching_ttl=0, days=90, count=0, data={}):
         
         return response.json(
             {
             "message": message,
             "count": count,
-            "data": data, 
+            "data": data,
+            "caching_ttl": caching_ttl,
+            "days": days,
             "error": False, 
             "success": True
             }, 
