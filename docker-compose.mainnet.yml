@@ -8,13 +8,31 @@ services:
           - ./src/config/mainnet/app_secrets.env
         volumes:
           - ./data/mongo:/data/db
-        network_mode: "host"
+        networks:
+          - wallet-profile
 
 
     wallet-profile-app-server:
         env_file:
           - ./src/config/mainnet/db_secrets.env
           - ./src/config/mainnet/app_secrets.env
-        network_mode: "host"
+        networks:
+          - wallet-profile
         volumes:
             - ./src:/pythonapp/src:ro
+
+    wallet-profile-rediscache-server:
+        image: redis:6.2-alpine
+        container_name: wallet-profile-rediscache-server
+        restart: always
+        ports:
+          - 6379:6379
+        command: redis-server --save 20 1 --loglevel warning
+        volumes:
+          - ./data/redis:/data
+        networks:
+          - wallet-profile
+
+networks:
+  wallet-profile:
+    driver: bridge

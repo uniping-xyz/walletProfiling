@@ -34,9 +34,6 @@ group by _date
 """
 async def floor_price_per_day(contract_address, number_of_days):
     url = "https://q.luabase.com/run"
-    LUABASE_API_KEY = os.environ['LUABASE_API_KEY']
-
-    url = "https://q.luabase.com/run"
 
     payload = {
         "block": {
@@ -55,7 +52,7 @@ async def floor_price_per_day(contract_address, number_of_days):
                 }
             }
         },
-        "api_key": LUABASE_API_KEY,
+        "api_key": os.environ['LUABASE_API_KEY'],
     }
 
     headers = {"content-type": "application/json"}

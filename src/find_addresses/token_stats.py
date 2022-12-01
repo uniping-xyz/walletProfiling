@@ -17,7 +17,7 @@ import re
 from caching.cache_utils import cache_validity, get_cache, set_cache, delete_cache
 
 TOKEN_STATS_BP = Blueprint("stats", url_prefix='/token', version=1)
-NUMBER_OF_DAYS = 30
+NUMBER_OF_DAYS = 10
 
 def make_query_string(request_args: dict, args_list: list) -> str:
     query_string = ""
