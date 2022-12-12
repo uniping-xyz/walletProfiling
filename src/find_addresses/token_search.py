@@ -22,6 +22,11 @@ from find_addresses.db_calls.erc20.ethereum import search_contract_address as er
 from find_addresses.db_calls.erc721.ethereum import search_contract_address as erc721_eth_search
 from find_addresses.db_calls.erc1155.ethereum import search_contract_address as erc1155_eth_search
 
+
+from find_addresses.db_calls.erc20.ethereum import search_text as erc20_eth_textsearch
+from find_addresses.db_calls.erc721.ethereum import search_text as erc721_eth_textsearch
+from find_addresses.db_calls.erc1155.ethereum import search_text as erc1155_eth_textsearch
+
 TOKEN_SEARCH_BP = Blueprint("search", url_prefix='/search/tokens', version=1)
 
 """
@@ -153,13 +158,22 @@ async def search_text(request):
     if  not request.args.get("text"):
         raise CustomError("text is required")
 
+    # async with aiohttp.ClientSession() as session:
+    #     result = await asyncio.gather(*[
+    #             luabase_text_search.search_erc20_text(session, request.args.get("text")),
+    #             luabase_text_search.search_erc721_text(session, request.args.get("text")), 
+    #             luabase_text_search.search_erc1155_text(session,request.args.get("text"))],                
+    #             return_exceptions=True)
+    #     logger.info(result)
+
     async with aiohttp.ClientSession() as session:
         result = await asyncio.gather(*[
-                luabase_text_search.search_erc20_text(session, request.args.get("text")),
-                luabase_text_search.search_erc721_text(session, request.args.get("text")), 
-                luabase_text_search.search_erc1155_text(session,request.args.get("text"))],                
+                erc20_eth_textsearch(request.app, request.args.get("text"), 10),
+                erc721_eth_textsearch(request.app, request.args.get("text")), 
+                erc1155_eth_textsearch(request.app,request.args.get("text"))],                
                 return_exceptions=True)
         logger.info(result)
+
 
     return Response.success_response(data=result)
 

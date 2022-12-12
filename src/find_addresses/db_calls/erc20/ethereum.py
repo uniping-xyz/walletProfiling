@@ -8,7 +8,7 @@ async def search_contract_address(app, contract_address):
     return result
 
 
-async def search_text(app, text):
+async def search_text(app, text, limit):
     result = []
     cursor = app.config.ETH_ERC20_TOKENS.find(
                     {"tokens": {"$in": [text]}
