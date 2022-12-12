@@ -151,7 +151,7 @@ async def search_text(request):
         raise CustomError("chain not suported")
 
     if  not request.args.get("text"):
-        raise CustomError("search Text is required")
+        raise CustomError("text is required")
 
     async with aiohttp.ClientSession() as session:
         result = await asyncio.gather(*[
@@ -159,6 +159,7 @@ async def search_text(request):
                 luabase_text_search.search_erc721_text(session, request.args.get("text")), 
                 luabase_text_search.search_erc1155_text(session,request.args.get("text"))],                
                 return_exceptions=True)
+        logger.info(result)
 
     return Response.success_response(data=result)
 

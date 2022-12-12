@@ -41,24 +41,20 @@ async def token_holders(request):
         request.args["offset"] = [0]
 
     query_string: str = make_query_string(request.args)
-
     if request.app.config.CACHING:
         caching_key = f"{request.route.path}?{query_string}"
         logger.info(f"Here is the caching key {caching_key}")
         data = await token_holders_caching(request.app, caching_key, request.args)
     else:
         data = await fetch_data(request.app, request.args)
-    
     result = []
     for row in data:
         result.append({
                 "balance": row['balance'],
                 "address": row['address'],
         })
-
     logger.success(f"Length of the result returned is {len(result)}")
     return Response.success_response(data=result)
-
 
 async def token_holders_caching(app: object, caching_key: str, request_args: dict) -> any: 
     cache_valid = await cache_validity(app.config.REDIS_CLIENT, caching_key, 
@@ -87,3 +83,12 @@ async def fetch_data(app: object, request_args: RequestParameters) -> any:
                     request_args.get("contract_address"),  request_args.get("limit"),  
                     request_args.get("offset"))
     return results
+
+
+
+
+
+
+
+
+

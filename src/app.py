@@ -151,9 +151,6 @@ async def after_server_start(app, loop):
 # >>> r = redis.Redis(connection_pool=pool)
     app.config.REDIS_CLIENT = redis.Redis.from_url(os.environ["REDIS_URL"])
     print(f"Redis ping successful: {await app.config.REDIS_CLIENT.ping()}")
-
-
-
     return
 
 if __name__ == '__main__':
