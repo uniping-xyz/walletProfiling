@@ -171,3 +171,29 @@ async def populate_tokens(request):
     request.app.add_task(populate_erc1155_blockdaemon(request.app))
     request.app.add_task(fetch_coingecko_token_list(request.app))
     return Response.success_response(data={})
+
+
+
+@TOKEN_SEARCH_BP.get('contract_type')
+# @is_subscribed()
+async def get_contract_type(request):
+    if  request.args.get("chain") not in request.app.config.SUPPORTED_CHAINS:
+        raise CustomError("chain not suported")
+
+    if  not request.args.get("contract_address"):
+        raise CustomError("contract_address is required")
+
+    query_string: str = make_query_string(request.args, ["chain", "contract_address"])
+    if request.app.config.CACHING:
+            caching_key = f"erc_standard?{query_string}"
+            logger.info(f"Here is the caching key {caching_key}")
+            erc_standard = await contract_standard_type_caching(request.app, caching_key, request.args)
+    else:
+        erc_standard = await fetch_contract_standard_type(request.app, request.args)
+
+    result = {}
+
+    if erc_standard:
+        result['standard'] = erc_standard
+
+    return Response.success_response(data=result)
