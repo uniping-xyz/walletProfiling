@@ -2,20 +2,16 @@
 import aiohttp
 import os
 
-async def get_ethereum_tags(label):
+async def eth_all_tags():
     url = "https://q.luabase.com/run"
 
     
     payload = {
     "block": {
-        "data_uuid":  os.environ['TAGS_DATA_UUID'],
+        "data_uuid":  os.environ['TAGS_ALL_DATA_UUID'],
         "details": {
             "limit": 2000,
             "parameters": {
-                "query": {
-                    "value": "defi",
-                    "type": "value"
-                }
             }
         }
     },
@@ -35,18 +31,18 @@ async def get_tagged_ethereum_contracts(tag):
 
     payload = {
     "block": {
-        "data_uuid": os.environ['TAGS_DATA_UUID'],
+        "data_uuid": os.environ['TAGS_CONTRACTS_DATA_UUID'],
         "details": {
             "limit": 2000,
             "parameters": {
                 "query": {
-                    "value": "defi",
+                    "value": tag,
                     "type": "value"
                 }
             }
         }
     },
-        "api_key": os.environ['TAGS_CONTRACTS_DATA_UUID'],
+        "api_key": os.environ['TAGS_LUABASE_API_KEY'],
     }
     headers = {"content-type": "application/json"}
     async with aiohttp.ClientSession() as session:

@@ -15,10 +15,10 @@ TOKEN_TAGS_BP = Blueprint("tags", url_prefix='/tags/', version=1)
 
 
 async def tags_cache_validity(app: object, caching_key: str, request_args: dict)-> object:
-    CACHE_EXPIRY = app.config.CACHING_TTL['LEVEL_FIVE']
+    CACHE_EXPIRY = app.config.CACHING_TTL['LEVEL_SIX']
     tags_cache_validity  = await cache_validity(app.config.REDIS_CLIENT, caching_key, CACHE_EXPIRY)
     if not tags_cache_validity:
-        eth_tags = await luabase_token_tags.get_ethereum_tags()
+        eth_tags = await luabase_token_tags.eth_all_tags()
         await set_cache(app.config.REDIS_CLIENT, caching_key, [e["label"] for e in eth_tags])
         return [e["label"] for e in eth_tags]
     data = await get_cache(app.config.REDIS_CLIENT,caching_key)
@@ -47,7 +47,7 @@ async def find_tags(request):
         logger.info(f"Here is the caching key {caching_key}")
         data = await tags_cache_validity(request.app, caching_key, request.args)
     else:
-        data = await  luabase_token_tags.get_ethereum_tags(request.app.config.LUABASE_API_KEY)
+        data = await  luabase_token_tags.eth_all_tags()
 
     result = list(filter(r.match, data)) # Read Note below
 

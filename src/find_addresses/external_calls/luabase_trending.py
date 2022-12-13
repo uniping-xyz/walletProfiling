@@ -43,7 +43,7 @@ async def topERC1155(chain, limit, offset, number_of_days):
 
     payload = {
         "block": {
-            "data_uuid": os.environ["TRENDING_ERC721_DATA_UUID"],
+            "data_uuid": os.environ["TRENDING_ERC1155_DATA_UUID"],
             "details": {
                 "limit": 2000,
                 "parameters": {
