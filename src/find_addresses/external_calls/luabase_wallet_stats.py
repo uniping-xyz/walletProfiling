@@ -13,7 +13,7 @@ async def wallet_txs_per_day(wallet_address, number_of_days):
 
     payload = {
     "block": {
-        "data_uuid": "55696395705b484ba8ce29c50c6ad4d7",
+        "data_uuid": os.environ["WALLET_STATS_TRANSACTIONS_PER_DAY_DATA_UUID"],
         "details": {
             "limit": 2000,
             "parameters": {
@@ -28,7 +28,7 @@ async def wallet_txs_per_day(wallet_address, number_of_days):
             }
         }
     },
-        "api_key": os.environ["LUABASE_API_KEY"],
+        "api_key": os.environ["WALLET_STATS_LUABASE_API_KEY"],
     }
     headers = {"content-type": "application/json"}
     async with aiohttp.ClientSession() as session:
@@ -43,7 +43,7 @@ async def wallet_txs(wallet_address, number_of_days):
 
     payload = {
     "block": {
-        "data_uuid": "fcde6f7adee3496ebb31bd12053c9c18",
+        "data_uuid": os.environ["WALLET_STATS_TRANSACTIONS_DATA_UUID"],
         "details": {
             "limit": 2000,
             "parameters": {
@@ -58,7 +58,7 @@ async def wallet_txs(wallet_address, number_of_days):
             }
         }
         },
-        "api_key": os.environ["LUABASE_API_KEY"],
+        "api_key": os.environ["WALLET_STATS_LUABASE_API_KEY"],
     }
     headers = {"content-type": "application/json"}
     async with aiohttp.ClientSession() as session:
@@ -74,7 +74,7 @@ async def wallet_most_outgoing_interactions(wallet_address, number_of_days):
 
     payload = {
     "block": {
-        "data_uuid": "fa480213f1354ddbae42b039b05685a7",
+        "data_uuid": os.environ["WALLET_STATS_OUTGOING_TABLE_DATA_UUID"],
         "details": {
             "limit": 2000,
             "parameters": {
@@ -89,7 +89,7 @@ async def wallet_most_outgoing_interactions(wallet_address, number_of_days):
             }
         }
         },
-        "api_key": os.environ["LUABASE_API_KEY"],
+        "api_key": os.environ["WALLET_STATS_LUABASE_API_KEY"],
     }
     headers = {"content-type": "application/json"}
     async with aiohttp.ClientSession() as session:
@@ -103,7 +103,7 @@ async def wallet_most_incoming_interactions(wallet_address, number_of_days):
 
     payload = {
         "block": {
-            "data_uuid": "f36f6323dd714456812060c3dcf298eb",
+            "data_uuid": os.environ["WALLET_STATS_INCOMING_TABLE_DATA_UUID"],
             "details": {
                 "limit": 2000,
                 "parameters": {
@@ -118,7 +118,7 @@ async def wallet_most_incoming_interactions(wallet_address, number_of_days):
                 }
             }
         },
-        "api_key": os.environ["LUABASE_API_KEY"],
+        "api_key": os.environ["WALLET_STATS_LUABASE_API_KEY"],
     }
     headers = {"content-type": "application/json"}
     async with aiohttp.ClientSession() as session:

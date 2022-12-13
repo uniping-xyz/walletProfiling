@@ -1,6 +1,7 @@
 
 import os
 import aiohttp
+
 async def search_erc20_text(session,  text):
     url = "https://q.luabase.com/run"
 

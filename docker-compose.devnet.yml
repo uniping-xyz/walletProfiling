@@ -16,6 +16,8 @@ services:
         env_file:
           - ./src/config/devnet/db_secrets.env
           - ./src/config/devnet/app_secrets.env
+          - ./src/config/devnet/luabase_secrets.env
+
         ports:
             - 8006:8080
         expose:

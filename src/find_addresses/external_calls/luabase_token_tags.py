@@ -2,20 +2,24 @@
 import aiohttp
 import os
 
-async def get_ethereum_tags():
+async def get_ethereum_tags(label):
     url = "https://q.luabase.com/run"
 
+    
     payload = {
     "block": {
-        "data_uuid": "958a4cdf11684438942e591e9bdb6e18"
-    },
-        "api_key": os.environ["LUABASE_API_KEY"],
-    "parameters": {
-        "label": {
-            "value": "defi",
-            "type": "value"
+        "data_uuid":  os.environ['TAGS_DATA_UUID'],
+        "details": {
+            "limit": 2000,
+            "parameters": {
+                "query": {
+                    "value": "defi",
+                    "type": "value"
+                }
+            }
         }
-    }
+    },
+    "api_key": os.environ['TAGS_LUABASE_API_KEY'],
     }
     headers = {"content-type": "application/json"}
     async with aiohttp.ClientSession() as session:
@@ -28,19 +32,21 @@ async def get_ethereum_tags():
 async def get_tagged_ethereum_contracts(tag):
     url = "https://q.luabase.com/run"
 
+
     payload = {
     "block": {
-        "data_uuid": "99310c5e8af9418197027ba9c8af3e24",
+        "data_uuid": os.environ['TAGS_DATA_UUID'],
         "details": {
+            "limit": 2000,
             "parameters": {
-                "label": {
-                    "value": tag,
+                "query": {
+                    "value": "defi",
                     "type": "value"
                 }
             }
         }
     },
-        "api_key": os.environ["LUABASE_API_KEY"],
+        "api_key": os.environ['TAGS_CONTRACTS_DATA_UUID'],
     }
     headers = {"content-type": "application/json"}
     async with aiohttp.ClientSession() as session:

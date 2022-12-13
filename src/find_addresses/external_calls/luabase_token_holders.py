@@ -7,7 +7,7 @@ async def holders_ERC20(contract_address, limit, offset):
     url = "https://q.luabase.com/run"
     payload = {
         "block": {
-            "data_uuid": "83a97a46ae29491eb285ea1cbf2f58dc",
+            "data_uuid": os.environ['ETH_HOLDERS_ERC20_DATA_UUID'],
             "details": {
                 "limit": 2000,
                 "parameters": {
@@ -26,7 +26,7 @@ async def holders_ERC20(contract_address, limit, offset):
                 }
             }
         },
-        "api_key": os.environ["LUABASE_API_KEY"],
+        "api_key":  os.environ['ETH_HOLDERS_LUABASE_API_KEY'],
     }
 
     headers = {"content-type": "application/json"}
@@ -40,7 +40,7 @@ async def holders_ERC1155(contract_address, limit, offset):
 
     payload = {
         "block": {
-            "data_uuid": "db64bc5123024e069472dde52417c849",
+            "data_uuid": os.environ['ETH_HOLDERS_ERC721_DATA_UUID'],
             "details": {
                 "limit": 2000,
                 "parameters": {
@@ -59,7 +59,7 @@ async def holders_ERC1155(contract_address, limit, offset):
                 }
             }
         },
-        "api_key": os.environ["LUABASE_API_KEY"],
+        "api_key":  os.environ['ETH_HOLDERS_LUABASE_API_KEY'],
     }
     headers = {"content-type": "application/json"}
     async with aiohttp.ClientSession() as session:
@@ -73,7 +73,7 @@ async def holders_ERC721( contract_address, limit, offset):
 
     payload = {
         "block": {
-            "data_uuid": "184517a47f5546a2b0f86ef91104e1db",
+            "data_uuid": os.environ['ETH_HOLDERS_1155_DATA_UUID'],
             "details": {
                 "limit": 2000,
                 "parameters": {
@@ -92,7 +92,7 @@ async def holders_ERC721( contract_address, limit, offset):
                 }
             }
         },
-        "api_key": os.environ["LUABASE_API_KEY"],
+        "api_key":  os.environ['ETH_HOLDERS_LUABASE_API_KEY'],
     }
     headers = {"content-type": "application/json"}
     async with aiohttp.ClientSession() as session:

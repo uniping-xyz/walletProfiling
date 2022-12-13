@@ -5,7 +5,7 @@ async def topERC20( chain, limit, offset, number_of_days):
     url = "https://q.luabase.com/run"
     payload = {
         "block": {
-            "data_uuid": "3a67d1de7cf9449d864813cc129f9e97",
+            "data_uuid": os.environ["TRENDING_ERC20_DATA_UUID"],
             "details": {
                 "limit": 2000,
                 "parameters": {
@@ -28,7 +28,7 @@ async def topERC20( chain, limit, offset, number_of_days):
                 }
             }
         },
-        "api_key": os.environ["LUABASE_API_KEY"],
+        "api_key": os.environ["TRENDING_LUABASE_API_KEY"],
     }
     headers = {"content-type": "application/json"}
     async with aiohttp.ClientSession() as session:
@@ -43,7 +43,7 @@ async def topERC1155(chain, limit, offset, number_of_days):
 
     payload = {
         "block": {
-            "data_uuid": "3d9e2c5ca87c4a50a8c6908fdd5b316f",
+            "data_uuid": os.environ["TRENDING_ERC721_DATA_UUID"],
             "details": {
                 "limit": 2000,
                 "parameters": {
@@ -70,7 +70,7 @@ async def topERC1155(chain, limit, offset, number_of_days):
                 }
             }
         },
-        "api_key": os.environ["LUABASE_API_KEY"],
+        "api_key": os.environ["TRENDING_LUABASE_API_KEY"],
     }
 
     headers = {"content-type": "application/json"}
@@ -85,7 +85,7 @@ async def topERC721(chain, limit, offset, number_of_days):
 
     payload = {
         "block": {
-            "data_uuid": "3d9e2c5ca87c4a50a8c6908fdd5b316f",
+            "data_uuid": os.environ["TRENDING_ERC721_DATA_UUID"],
             "details": {
                 "limit": 2000,
                 "parameters": {
@@ -112,7 +112,7 @@ async def topERC721(chain, limit, offset, number_of_days):
                 }
             }
         },
-        "api_key": os.environ["LUABASE_API_KEY"],
+        "api_key": os.environ["TRENDING_LUABASE_API_KEY"],
     }
 
     headers = {"content-type": "application/json"}

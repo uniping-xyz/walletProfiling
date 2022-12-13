@@ -16,6 +16,8 @@ services:
         env_file:
           - ./src/config/mainnet/db_secrets.env
           - ./src/config/mainnet/app_secrets.env
+          - ./src/config/mainnet/luabase_secrets.env
+
         networks:
           - wallet-profile
         volumes:

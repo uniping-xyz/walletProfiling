@@ -37,7 +37,7 @@ async def floor_price_per_day(contract_address, number_of_days):
 
     payload = {
         "block": {
-            "data_uuid": "eb99579b3e5a4fcab10fae1667a32196",
+            "data_uuid": os.environ["FLOOR_PRICE_DATA_UUID"],
             "details": {
                 "limit": 2000,
                 "parameters": {
@@ -52,7 +52,7 @@ async def floor_price_per_day(contract_address, number_of_days):
                 }
             }
         },
-        "api_key": os.environ['LUABASE_API_KEY'],
+        "api_key": os.environ['FLOOR_PRICE_LUABASE_API_KEY'],
     }
 
     headers = {"content-type": "application/json"}

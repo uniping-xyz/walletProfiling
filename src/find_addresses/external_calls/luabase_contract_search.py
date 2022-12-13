@@ -19,7 +19,7 @@ async def search_contract_contracts_table(contract_address):
 
     payload = {
         "block": {
-            "data_uuid": "6996ac2efa374930bf46dfe8ebfa7bc3",
+            "data_uuid": os.environ["CONTRACT_SEARCH_CONTRACTS_TABLE_DATA_UUID"],
             "details": {
                 "limit": 2000,
                 "parameters": {
@@ -30,7 +30,7 @@ async def search_contract_contracts_table(contract_address):
                 }
             }
         },
-        "api_key": os.environ["LUABASE_API_KEY"],
+        "api_key": os.environ["CONTRACT_SEARCH_LUABASE_API_KEY"],
     }
     
     headers = {"content-type": "application/json"}
@@ -40,15 +40,12 @@ async def search_contract_contracts_table(contract_address):
     return data["data"]
 
 
-
-
-
 async def search_contract_nft_transfers(contract_address):
     url = "https://q.luabase.com/run"
 
     payload = {
         "block": {
-            "data_uuid": "09d7e7740ddf4b368cdf84abd8d1626d",
+            "data_uuid":  os.environ["CONTRACT_SEARCH_NFT_TRANSFERS_TABLE_DATA_UUID"],
             "details": {
                 "limit": 2000,
                 "parameters": {
@@ -59,7 +56,7 @@ async def search_contract_nft_transfers(contract_address):
                 }
             }
         },
-        "api_key": os.environ["LUABASE_API_KEY"],
+        "api_key": os.environ["CONTRACT_SEARCH_LUABASE_API_KEY"],
     }
     
     headers = {"content-type": "application/json"}
@@ -82,7 +79,7 @@ async def search_contract_erc20_transfers(contract_address):
 
     payload = {
         "block": {
-            "data_uuid": "54ca20e088a94c8090bbd6316135d547",
+            "data_uuid": os.environ["CONTRACT_SEARCH_TOKEN_TRANSFERS_TABLE_DATA_UUID"],
             "details": {
                 "limit": 2000,
                 "parameters": {
@@ -93,7 +90,7 @@ async def search_contract_erc20_transfers(contract_address):
                 }
             }
         },
-        "api_key": os.environ["LUABASE_API_KEY"],
+        "api_key": os.environ["CONTRACT_SEARCH_LUABASE_API_KEY"],
     }
 
     headers = {"content-type": "application/json"}

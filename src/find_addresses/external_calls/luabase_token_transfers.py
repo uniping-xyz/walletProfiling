@@ -23,7 +23,7 @@ async def search_contract_nft_transfers(contract_address, limit, offset):
 
     payload = {
         "block": {
-            "data_uuid": "4c4fa5f6fe484f9fb4adade404fae893",
+            "data_uuid":os.environ['ETH_NFT_TRANSFERS_DATA_UUID'],
             "details": {
                 "limit": 2000,
                 "parameters": {
@@ -42,7 +42,7 @@ async def search_contract_nft_transfers(contract_address, limit, offset):
                 }
             }
         },
-        "api_key": os.environ["LUABASE_API_KEY"],
+        "api_key":  os.environ['ETH_TOKEN_TRANSFERS_LUABASE_API_KEY'],
     }
     headers = {"content-type": "application/json"}
 
@@ -64,7 +64,7 @@ async def search_contract_erc20_transfers(contract_address, limit, offset):
 
     payload = {
         "block": {
-            "data_uuid": "4e120e31a0584683a4042df14d2629df",
+            "data_uuid": os.environ['ETH_ERC20_TRANSFERS_DATA_UUID'],
             "details": {
                 "limit": 2000,
                 "parameters": {
@@ -83,7 +83,7 @@ async def search_contract_erc20_transfers(contract_address, limit, offset):
                 }
             }
         },
-        "api_key": os.environ["LUABASE_API_KEY"],
+        "api_key":  os.environ['ETH_TOKEN_TRANSFERS_LUABASE_API_KEY'],
     }
     headers = {"content-type": "application/json"}
     async with aiohttp.ClientSession() as session:
