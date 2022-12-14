@@ -95,3 +95,30 @@ async def find_tagged_contracts(request):
     else:
         data = await  luabase_token_tags.get_tagged_ethereum_contracts(request.args.get("tag"))
     return Response.success_response(data=data)
+
+
+async def all_tags_contracts_cache_validity(app: object, caching_key: str) -> object:
+    CACHE_EXPIRY = app.config.CACHING_TTL['LEVEL_FIVE']
+    tags_contracts_cache  = await cache_validity(app.config.REDIS_CLIENT, caching_key, CACHE_EXPIRY)
+    if not tags_contracts_cache:
+        data = await luabase_token_tags.get_all_ethereum_tags_with_contracts()
+        await set_cache(app.config.REDIS_CLIENT, caching_key, data)
+        return data
+    data = await get_cache(app.config.REDIS_CLIENT, caching_key)
+    return json.loads(data)
+
+
+@TOKEN_TAGS_BP.get('all_tags')
+#@is_subscribed()
+async def all_tags(request):
+
+    if  request.args.get("chain") not in request.app.config.SUPPORTED_CHAINS:
+        raise CustomError("chain not suported")
+
+    query_string: str = make_query_string(request.args, ["chain"])
+    caching_key = f"{request.route.path}?{query_string}?all_tags"
+    logger.info(caching_key)
+
+    data = await all_tags_contracts_cache_validity(request.app, caching_key)
+    return Response.success_response(data=data)
+

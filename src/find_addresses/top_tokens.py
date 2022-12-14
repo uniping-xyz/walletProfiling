@@ -26,7 +26,7 @@ def make_query_string(request_args: dict) -> str:
     return query_string[1:] # to remove the first $ sign appened to the string
 
 @MOST_POPULAR_BP.get('most_popular')
-@is_subscribed()
+# @is_subscribed()
 async def most_popular(request):
     
     if request.args.get("chain") not in request.app.config.SUPPORTED_CHAINS:

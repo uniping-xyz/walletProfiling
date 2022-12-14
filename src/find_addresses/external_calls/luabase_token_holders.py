@@ -73,7 +73,7 @@ async def holders_ERC721( contract_address, limit, offset):
 
     payload = {
         "block": {
-            "data_uuid": os.environ['ETH_HOLDERS_721_DATA_UUID'],
+            "data_uuid": os.environ['ETH_HOLDERS_ERC721_DATA_UUID'],
             "details": {
                 "limit": 2000,
                 "parameters": {

@@ -81,7 +81,7 @@ async def fetch_contract_standard_type(app: object, request_args: dict):
     response = await luabase_contract_search.search_contract_contracts_table(request_args.get("contract_address"))
     if not response:
         logger.error(f'{request_args.get("contract_address")} ERC_STANDARD=[{None }]')
-        return None   
+        return "eoa"   
     for (key, standard) in [("is_erc20", "erc20"), ("is_erc721", "erc721"), ("is_erc1155", "erc1155")]:
         if response[0].get(key):
             logger.success(f'{request_args.get("contract_address")} ERC_STANDARD=[{standard}]')

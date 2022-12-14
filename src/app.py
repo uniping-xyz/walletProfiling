@@ -171,8 +171,7 @@ if __name__ == '__main__':
                             url_prefix='/api')
     if ENVIRONMENT == "devnet":
         APP_BP = Blueprint.group(APP_BP, ADMIN_BP)
-
     app.blueprint(APP_BP)
     for route in app.router.routes:
-        print(f"/{route.path:60} - {route.name:70} -  {route.methods} [{route.router}]")
+        print(f"/{route.path:30} - {route.name:40} -  {route.methods}")
     app.run(host="0.0.0.0", port=8080, workers=1, auto_reload=True, access_log=False,  reload_dir="./config")
