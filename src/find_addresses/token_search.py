@@ -35,7 +35,7 @@ even if that contract address is a proxy
 Also gives the the top holders of the token
 """
 @TOKEN_SEARCH_BP.get('search_contract_address')
-@is_subscribed()
+#@is_subscribed()
 async def search_contract_address(request):
     if  request.args.get("chain") not in request.app.config.SUPPORTED_CHAINS:
         raise CustomError("chain not suported")

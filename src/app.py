@@ -8,6 +8,7 @@ from loguru import logger
 # import aioredis
 import redis.asyncio as redis
 from branca import Branca
+import boto3
 import binascii
 from find_addresses.common_address_different_tokens import CMN_ADDR_DIFF_TKNS
 from find_addresses.token_search import  TOKEN_SEARCH_BP
@@ -18,6 +19,7 @@ from find_addresses.contract_tags import TOKEN_TAGS_BP
 from find_addresses.token_stats import TOKEN_STATS_BP
 from find_addresses.wallet_stats import USER_TOKEN_BALANCE_BP
 from find_addresses.admin import ADMIN_BP
+from find_addresses.most_active_wallets import ACTIVE_WALLETS_BP
 from utils.errors import ERRORS_BP
 from dotenv import load_dotenv, dotenv_values
 
@@ -75,6 +77,7 @@ async def load_config():  # pylint: disable=too-many-branches
 #     return
 
 
+
 async def load_db_secrets():
 
     user = os.environ["MONGO_INITDB_USERNAME"]
@@ -128,7 +131,6 @@ async def create_index(collection, field):
 async def after_server_start(app, loop):
     ENVIRONMENT = os.environ['APP_ENV']
     await load_db_secrets()
-
     logger.info(f"Config loded")
     await load_config()
     await secret()
@@ -168,6 +170,7 @@ if __name__ == '__main__':
                             TOKEN_STATS_BP,
                             USER_TOKEN_BALANCE_BP,
                             ERRORS_BP,
+                            ACTIVE_WALLETS_BP,
                             url_prefix='/api')
     if ENVIRONMENT == "devnet":
         APP_BP = Blueprint.group(APP_BP, ADMIN_BP)
