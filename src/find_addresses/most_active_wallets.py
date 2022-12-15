@@ -6,6 +6,10 @@ from utils.errors import CustomError
 from utils.authorization import is_subscribed
 from loguru import logger
 from find_addresses.external_calls.s3.erc20.eth_active_wallets import erc20_active_wallets
+from find_addresses.external_calls.s3.erc721.eth_active_wallets import erc721_active_wallets
+from find_addresses.external_calls.s3.erc1155.eth_active_wallets import erc1155_active_wallets
+
+
 from find_addresses.external_calls import luabase_contract_search
 
 ACTIVE_WALLETS_BP = Blueprint("wallets", url_prefix='/wallets', version=1)
@@ -30,8 +34,14 @@ async def most_active(request):
     if not request.args.get("limit"):
         request.args["limit"] = [1000]
     
-
-    if request.args.get("erc_type") == "ERC20":
-        result = await erc20_active_wallets(number_of_days, request.args.get("limit"))
+    try:
+        if request.args.get("erc_type") == "ERC20":
+            result = await erc20_active_wallets(number_of_days, request.args.get("limit"))
+        elif request.args.get("erc_type") == "ERC721":
+            result = await erc721_active_wallets(number_of_days, request.args.get("limit"))
+        else:
+            result = await erc1155_active_wallets(number_of_days, request.args.get("limit"))
+    except Exception as e:
+        raise CustomError(e.__str__())
 
     return Response.success_response(data=result)

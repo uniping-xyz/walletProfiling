@@ -1,6 +1,21 @@
 
 import os
 import boto3
+
+
+
+
+async def erc721_active_wallets(number_of_days, limit):
+    if number_of_days == 1:
+        return await erc721_one_day_active_wallets(limit)
+    elif number_of_days == 3:
+        return await erc721_three_day_active_wallets(limit)
+    elif number_of_days == 7:
+        return await erc721_seven_day_active_wallets(limit)
+    else:
+        raise Exception("ERC721: Number of days not supported")
+
+
 async def erc721_one_day_active_wallets(limit):
   
     file_name = os.environ['ETH_ERC721_ONE_DAY_FILE_NAME']
