@@ -266,3 +266,22 @@ async def most_interactions(request):
     # await fetch_nft_balance(request.app, request.args, "ethereum")
          
     return Response.success_response(data=data, caching_ttl=caching_ttl, days=NUMBER_OF_DAYS)
+
+
+@USER_TOKEN_BALANCE_BP.get('native_balance')
+async def native_balance(request):
+    caching_ttl =  request.app.config.CACHING_TTL['LEVEL_THREE']
+
+    if not request.args.get('wallet_address'):
+        raise CustomError("Wallet address is required")
+
+    query_string: str = make_query_string(request.args, ["wallet_address"])
+    caching_key = f"{request.route.path}?{query_string}?native_balance"
+    logger.info(f"Here is the caching key for wallet_address {caching_key}")
+
+    data = await most_interactions_caching(request.app, caching_key, caching_ttl, request.args)
+    # await fetch_nft_balance(request.app, request.args, "ethereum")
+         
+    return Response.success_response(data=data, caching_ttl=caching_ttl, days=NUMBER_OF_DAYS)
+
+

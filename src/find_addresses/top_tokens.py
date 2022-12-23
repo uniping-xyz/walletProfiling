@@ -25,10 +25,64 @@ def make_query_string(request_args: dict) -> str:
         query_string += f"&{key}={value}"
     return query_string[1:] # to remove the first $ sign appened to the string
 
+
+
+
+async def fetch_data(app: object, request_args: RequestParameters, caching_key: str) -> any:
+    if request_args.get("erc_type") ==  "ERC20":
+        results = await luabase_trending.topERC20(  
+                        request_args.get("chain"), request_args.get("limit"), 
+                        request_args.get("offset"), request_args.get("number_of_days"))
+        for e in results:
+            if not e["name"]:
+                res = await erc20_eth_search(app, e["contract_address"])
+                if res:
+                    e.update({"name": res.get("name")})
+        logger.success("Update most popular erc20 tokens")
+
+    elif request_args.get("erc_type") ==  "ERC721":
+        results = await luabase_trending.topERC721(  
+                        request_args.get("chain"), request_args.get("limit"), 
+                        request_args.get("offset"), request_args.get("number_of_days")) 
+        for e in results:
+            if not e["name"]:
+                logger.info(f"OLD {e}")
+                res = await erc721_eth_search(app, e["contract_address"])
+                if res:
+                    e.update({"name": res.get("name")})
+        logger.success("Update most popular erc721 tokens")
+    else:
+        results = await luabase_trending.topERC1155(  
+                        request_args.get("chain"), request_args.get("limit"), 
+                        request_args.get("offset"), request_args.get("number_of_days"))
+        for e in results:
+            if not e["name"]:
+                res = await erc1155_eth_search(app, e["contract_address"])
+                if res:
+                    e.update({"name": res.get("name")})
+    
+        logger.success("Update most popular erc1155 tokens")
+    await set_cache(app.config.REDIS_CLIENT, caching_key, results)
+    return results
+
+async def most_popular_token_caching(request: object, caching_key: str, request_args: dict, caching_ttl: int) -> any:
+    result= await get_cache(request.app.config.REDIS_CLIENT, caching_key)
+    if result:
+        logger.info("result has been found and loading it from cached")
+        cache_valid = await cache_validity(request.app.config.REDIS_CLIENT, caching_key, caching_ttl)
+        if not cache_valid:
+            logger.warning("Cache expired fetching new data")
+            request.app.add_task(fetch_data(request.app, request_args, caching_key))
+        return json.loads(result)
+    logger.success("Cache is empty for this request")
+    data = await fetch_data(request.app, request_args, caching_key)
+    return data
+
 @MOST_POPULAR_BP.get('most_popular')
 # @is_subscribed()
 async def most_popular(request):
-    
+    CACHE_EXPIRY = request.app.config.CACHING_TTL['LEVEL_FOUR']
+
     if request.args.get("chain") not in request.app.config.SUPPORTED_CHAINS:
         raise CustomError("chain not suported")
 
@@ -49,17 +103,10 @@ async def most_popular(request):
         request.args["offset"] = [0]
 
         
-
     query_string: str = make_query_string(request.args)
-
-
-    if request.app.config.CACHING:
-        caching_key = f"{request.route.path}?{query_string}"
-        logger.info(f"Here is the caching key {caching_key}")
-        data = await most_popular_token_caching(request.app, caching_key, request.args)
-    else:
-        data = await fetch_data(request.app, request.args)
-  
+    caching_key = f"{request.route.path}?{query_string}"
+    logger.info(f"Here is the caching key {caching_key}")
+    data = await most_popular_token_caching(request, caching_key, request.args, CACHE_EXPIRY)
     result = []
     for row in data:
         result.append({
@@ -68,49 +115,4 @@ async def most_popular(request):
                 "name": row['name'],
                 "symbol": row['symbol']
         }) 
-    return Response.success_response(data=result)
-
-
-async def most_popular_token_caching(app: object, caching_key: str, request_args: dict) -> any: 
-    cache_valid = await cache_validity(app.config.REDIS_CLIENT, caching_key, 
-                            app.config.CACHING_TTL['LEVEL_FOUR'])
-
-    if not cache_valid:
-        data = await fetch_data(app, request_args)
-        await set_cache(app.config.REDIS_CLIENT, caching_key, data)
-        return data
-    result= await get_cache(app.config.REDIS_CLIENT, caching_key)
-    return json.loads(result)
-
-async def fetch_data(app: object, request_args: RequestParameters) -> any:
-    if request_args.get("erc_type") ==  "ERC20":
-        results = await luabase_trending.topERC20(  
-                        request_args.get("chain"), request_args.get("limit"), 
-                        request_args.get("offset"), request_args.get("number_of_days"))
-        for e in results:
-            if not e["name"]:
-                res = await erc20_eth_search(app, e["contract_address"])
-                if res:
-                    e.update({"name": res.get("name")})
-
-
-    elif request_args.get("erc_type") ==  "ERC721":
-        results = await luabase_trending.topERC721(  
-                        request_args.get("chain"), request_args.get("limit"), 
-                        request_args.get("offset"), request_args.get("number_of_days")) 
-        for e in results:
-            if not e["name"]:
-                logger.info(f"OLD {e}")
-                res = await erc721_eth_search(app, e["contract_address"])
-                if res:
-                    e.update({"name": res.get("name")})
-    else:
-        results = await luabase_trending.topERC1155(  
-                        request_args.get("chain"), request_args.get("limit"), 
-                        request_args.get("offset"), request_args.get("number_of_days"))
-        for e in results:
-            if not e["name"]:
-                res = await erc1155_eth_search(app, e["contract_address"])
-                if res:
-                    e.update({"name": res.get("name")})
-    return results
+    return Response.success_response(data=result, caching_ttl=CACHE_EXPIRY)
