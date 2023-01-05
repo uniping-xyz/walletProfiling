@@ -13,6 +13,8 @@ from caching.cache_utils import cache_validity, get_cache, set_cache, delete_cac
 from find_addresses.db_calls.erc20.ethereum import search_contract_address as erc20_eth_search
 from find_addresses.db_calls.erc721.ethereum import search_contract_address as erc721_eth_search
 from find_addresses.db_calls.erc1155.ethereum import search_contract_address as erc1155_eth_search
+from populate_data.populate_coingecko import check_coingecko_tokens_staleness
+from populate_data.populate_blockdaemon import check_blockDaemon_tokens_staleness
 
 MOST_POPULAR_BP = Blueprint("most_popular", url_prefix='/most_popular/tokens', version=1)
 
@@ -24,9 +26,6 @@ def make_query_string(request_args: dict) -> str:
             value = value[0]
         query_string += f"&{key}={value}"
     return query_string[1:] # to remove the first $ sign appened to the string
-
-
-
 
 async def fetch_data(app: object, request_args: RequestParameters, caching_key: str) -> any:
     if request_args.get("erc_type") ==  "ERC20":
@@ -66,6 +65,8 @@ async def fetch_data(app: object, request_args: RequestParameters, caching_key: 
     return results
 
 async def most_popular_token_caching(request: object, caching_key: str, request_args: dict, caching_ttl: int) -> any:
+    await check_coingecko_tokens_staleness(request.app)
+    await check_blockDaemon_tokens_staleness(request.app)
     result= await get_cache(request.app.config.REDIS_CLIENT, caching_key)
     if result:
         logger.info("result has been found and loading it from cached")
@@ -114,5 +115,6 @@ async def most_popular(request):
                 "contract_address": row['contract_address'],
                 "name": row['name'],
                 "symbol": row['symbol']
-        }) 
+        })
+    logger.info(data)
     return Response.success_response(data=result, caching_ttl=CACHE_EXPIRY)

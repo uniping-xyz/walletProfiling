@@ -20,6 +20,8 @@ from find_addresses.token_stats import TOKEN_STATS_BP
 from find_addresses.wallet_stats import USER_TOKEN_BALANCE_BP
 from find_addresses.admin import ADMIN_BP
 from find_addresses.most_active_wallets import ACTIVE_WALLETS_BP
+from find_addresses.contract_creators import CREATOR_WALLETS_BP
+
 from utils.errors import ERRORS_BP
 from dotenv import load_dotenv, dotenv_values
 
@@ -171,6 +173,7 @@ if __name__ == '__main__':
                             USER_TOKEN_BALANCE_BP,
                             ERRORS_BP,
                             ACTIVE_WALLETS_BP,
+                            CREATOR_WALLETS_BP,
                             url_prefix='/api')
     if ENVIRONMENT == "devnet":
         APP_BP = Blueprint.group(APP_BP, ADMIN_BP)
