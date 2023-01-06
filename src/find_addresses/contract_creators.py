@@ -6,6 +6,9 @@ from utils.errors import CustomError
 from utils.authorization import is_subscribed
 from loguru import logger
 from find_addresses.external_calls.s3.erc20.eth_trending_contract_creators import erc20_trending_contract_creators
+from find_addresses.external_calls.s3.erc721.eth_trending_contract_creators import erc721_trending_contract_creators
+from find_addresses.external_calls.s3.erc1155.eth_trending_contract_creators import erc1155_trending_contract_creators
+from find_addresses.external_calls.s3.unknownstandard.eth_trending_contract_creators import unknownstandard_trending_contract_creators
 
 from populate_data.populate_coingecko import check_coingecko_tokens_staleness
 from populate_data.populate_blockdaemon import check_blockDaemon_tokens_staleness
@@ -32,7 +35,7 @@ async def trending_contract_creators(request):
     if not request.args.get("erc_type"):
         raise CustomError("ERC Type is required")
 
-    if not request.args.get("erc_type") in ["ERC20", "ERC721", "ERC1155"]:
+    if not request.args.get("erc_type") in ["ERC20", "ERC721", "ERC1155", "unknown"]:
         raise CustomError("ERC Type is not valid")
 
     if not request.args.get("limit"):
@@ -40,24 +43,16 @@ async def trending_contract_creators(request):
     
     try:
         if request.args.get("erc_type") == "ERC20":
-            temp_result = await erc20_trending_contract_creators(request.args.get("limit"))
-            result = []
-            for e in temp_result:
-                res = await erc20_eth_search(request.app, e[1])
-                if res:
-                    result.append({"name": res.get("name"), "address": e[1], "wallet_address": e[2], "timestamp": e[3]})
-                else:
-                    logger.warning(f"Contract name not found for {e[1]}")
+            result = await erc20_trending_contract_creators(request.args.get("limit"))
 
-        logger.success("Update most popular erc20 tokens")
-        # elif request.args.get("erc_type") == "ERC721":
-        #     result = await erc721_active_wallets(number_of_days, request.args.get("limit"))
-        # else:
-        #     result = await erc1155_active_wallets(number_of_days, request.args.get("limit"))
+        elif request.args.get("erc_type") == "ERC721":
+            result = await erc721_trending_contract_creators(request.args.get("limit"))
+        elif request.args.get("erc_type") == "ERC1155":
+            result = await erc1155_trending_contract_creators(request.args.get("limit"))
+        else:
+            result = await unknownstandard_trending_contract_creators(request.args.get("limit"))
+
     except Exception as e:
-        pass
-        # raise CustomError(e.__str__())
+        raise CustomError(e.__str__())
 
-
-
-    return Response.success_response(data=result)
+    return Response.success_response(data=result, count=len(result), days=120)

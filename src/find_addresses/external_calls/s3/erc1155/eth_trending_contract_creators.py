@@ -28,8 +28,9 @@ group by wallet_address
 order by count desc
 
 """
-async def erc20_trending_contract_creators(limit):
-    file_name = os.environ['ETH_ERC20_CONTRACT_CREATORS_FILE_NAME']
+async def erc1155_trending_contract_creators(limit):
+    file_name = os.environ['ETH_ERC1155_CONTRACT_CREATORS_FILE_NAME']
+    logger.info(f"Fetching data from {file_name}")
     return await fetch_data(file_name, limit)
 
 
@@ -42,8 +43,6 @@ async def fetch_data(file_name, limit):
                     aws_secret_access_key=aws_secret_access_key,
                     region_name=region_name
                     )
-    
-
     bucket_name = os.environ['DATA_BUCKET_NAME']
 
     resp = s3_client.select_object_content(

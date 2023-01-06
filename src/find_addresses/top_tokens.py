@@ -64,17 +64,21 @@ async def fetch_data(app: object, request_args: RequestParameters, caching_key: 
     await set_cache(app.config.REDIS_CLIENT, caching_key, results)
     return results
 
+
 async def most_popular_token_caching(request: object, caching_key: str, request_args: dict, caching_ttl: int) -> any:
     await check_coingecko_tokens_staleness(request.app)
     await check_blockDaemon_tokens_staleness(request.app)
     result= await get_cache(request.app.config.REDIS_CLIENT, caching_key)
+    logger.info("result in cache")
+    logger.info(result)
     if result:
-        logger.info("result has been found and loading it from cached")
-        cache_valid = await cache_validity(request.app.config.REDIS_CLIENT, caching_key, caching_ttl)
-        if not cache_valid:
-            logger.warning("Cache expired fetching new data")
-            request.app.add_task(fetch_data(request.app, request_args, caching_key))
-        return json.loads(result)
+        if json.loads(result):
+            logger.info("result has been found and loading it from cached")
+            cache_valid = await cache_validity(request.app.config.REDIS_CLIENT, caching_key, caching_ttl)
+            if not cache_valid:
+                logger.warning("Cache expired fetching new data")
+                request.app.add_task(fetch_data(request.app, request_args, caching_key))
+            return json.loads(result)
     logger.success("Cache is empty for this request")
     data = await fetch_data(request.app, request_args, caching_key)
     return data

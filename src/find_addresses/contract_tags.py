@@ -97,7 +97,7 @@ async def find_tagged_contracts(request):
 
     caching_key = f"{request.route.path}?{query_string}"
     logger.info(f"Here is the caching key {caching_key}")
-    data = await tags_contracts_cache_validity(request.app, caching_key, request.args)
+    data = await tags_contracts_cache_validity(request.app, caching_key, request.args, CACHE_TTL)
     return Response.success_response(data=data)
 
 async def fetch_all_tags(app, caching_key):
@@ -133,7 +133,7 @@ async def all_tags(request):
     caching_key = f"{request.route.path}?{query_string}?all_tags"
     logger.info(caching_key)
 
-    data = await all_tags_contracts_cache_validity(request.app, caching_key, CACHE_TTL)
+    data = await all_tags_contracts_cache_validity(request, caching_key, CACHE_TTL)
     return Response.success_response(data=data)
 
 # async def most_popular_token_caching(request: object, caching_key: str, request_args: dict, caching_ttl: int) -> any:

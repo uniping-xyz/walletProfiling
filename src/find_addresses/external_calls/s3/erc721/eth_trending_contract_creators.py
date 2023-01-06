@@ -28,8 +28,8 @@ group by wallet_address
 order by count desc
 
 """
-async def erc20_trending_contract_creators(limit):
-    file_name = os.environ['ETH_ERC20_CONTRACT_CREATORS_FILE_NAME']
+async def erc721_trending_contract_creators(limit):
+    file_name = os.environ['ETH_ERC721_CONTRACT_CREATORS_FILE_NAME']
     return await fetch_data(file_name, limit)
 
 

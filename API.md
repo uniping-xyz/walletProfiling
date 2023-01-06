@@ -325,3 +325,33 @@ response =
  ```
 
 
+### Contract Creators
+#### Gives you a descending order list of wallets who have delpyed the max number of contracts in a standard
+
+url = "http://localhost:8006/v1/api/wallets/contract_creators/trending"
+erc typ[e options = ["ERC1155", "ERC20", "ERC721", "unknown"]
+params={"chain": "ethereum", "erc_type": "unknown"})
+```
+{'message': None,
+ 'count': 1000,
+ 'data': [['5768', '0xcdd37ada79f589c15bd4f8fd2083dc88e34a2af2'],
+  ['9', '0xa96cc3b0420f4f7cdbd7551bbd83ac617014e43c'],
+  ['9', '0xd1863ac41195ca2e347e1b1faab443193637978d'],
+  ['9', '0x980dbf8e01e0bfd1dc42f6dbb9d0f639677db9ff'],
+  ['9', '0x710c2634fb4bf81d98db904e1b48a4ceaa15f89a'],
+  ['9', '0xb053389939e0631133fc4aefd34b485ca5ff2b65'],
+  ['9', '0x16888860e7e9906d4099098dfbf3489b114e5cb4'],
+  ['9', '0x41ba73fe3afec1fa6940bbfbb277a612f43c5198'],
+  ['9', '0x257984b6b5bcfd665532649450242d4df1eb304f'],
+  ['9', '0x769a584853d3edffc6d74e46698523376eb9040d'],
+  ['9', '0xbb7a488c18f3b8c8d19c432ac83f6424f8b4263d'],
+  ['9', '0x11c9d5c66d7c54c2b50d07421ed12b7012756771'],
+  ['9', '0x356d27314fdba9fea6311defce830ed4b1117dc4'],
+  ['9', '0x0a831d5150c145afa8efcd5c1d7989c1e98faf92'],
+  ['9', '0xa4fa5429544b225985f8438f2e013a9cce7102f2']],
+ 'caching_ttl': 0,
+ 'days': 120,
+ 'error': False,
+ 'success': True}
+```
+
