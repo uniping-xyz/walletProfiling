@@ -21,6 +21,8 @@ from find_addresses.wallet_stats import USER_TOKEN_BALANCE_BP
 from find_addresses.admin import ADMIN_BP
 from find_addresses.most_active_wallets import ACTIVE_WALLETS_BP
 from find_addresses.contract_creators import CREATOR_WALLETS_BP
+from categories.categories import CATEGORIES_BP
+
 
 from utils.errors import ERRORS_BP
 from dotenv import load_dotenv, dotenv_values
@@ -95,6 +97,7 @@ async def load_db_secrets():
     # app.config.TOKENS = db["tokens"]
     app.config.QUERIES = db["queries"]
     app.config.ETH_ERC20_TOKENS = db["eth_erc20_tokens"]
+    app.config.COINGECKO_ETH_ERC20_TOKENS = db["coingecko_eth_erc20_tokens"]
     app.config.POLYGON_ERC20_TOKENS = db["polygon_erc20_tokens"]
 
     app.config.ETH_ERC721_TOKENS = db["eth_erc721_tokens"]
@@ -113,6 +116,7 @@ async def load_db_secrets():
     await create_index(app.config.ETH_ERC721_TOKENS, "contracts")
     await create_index(app.config.ETH_ERC1155_TOKENS, "tokens")
     await create_index(app.config.ETH_ERC1155_TOKENS, "contracts")
+    await create_unique_index(app.config.COINGECKO_ETH_ERC20_TOKENS, "name")
 
 
     logger.success(f"Mongodb connection established {db}")
@@ -125,6 +129,18 @@ async def create_index(collection, field):
         await collection.create_index(
                 field,
                 unique=False,
+                sparse=True,
+                name=f"{field}_index",
+                default_language='english')
+
+
+async def create_unique_index(collection, field):
+    index_information = await collection.index_information()
+    if not index_information.get(f"{field}_index"):
+        logger.success(f"{field}_index doesnt exists; creating an index on collection")
+        await collection.create_index(
+                field,
+                unique=True,
                 sparse=True,
                 name=f"{field}_index",
                 default_language='english')
@@ -162,7 +178,7 @@ if __name__ == '__main__':
     ENVIRONMENT = os.environ['APP_ENV']
 
     logger.info(f"The Env is {ENVIRONMENT}")
-    APP_BP = Blueprint.group(
+    APP_BP = Blueprint.group(CATEGORIES_BP,
                             CMN_ADDR_DIFF_TKNS,
                             TOKEN_SEARCH_BP,
                             MOST_POPULAR_BP,

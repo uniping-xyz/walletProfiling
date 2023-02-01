@@ -10,7 +10,8 @@ services:
           - ./data/mongo:/data/db
         networks:
           - wallet-profile
-
+        ports:
+          - 8012:27017
 
     wallet-profile-app-server:
         env_file:
