@@ -6,18 +6,11 @@ sdk = ShroomDK(os.getenv("SHROOM_API_KEY"))
 
 
 
+async def eth_erc20_token_holders(token_address, limit, offset):
 
-def eth_erc20_token_holders(token_address, limit, offset):
-
-    query = """WITH genesis AS (
-        SELECT *
-        FROM
-          ETHEREUM.core.dim_contracts_extended
-        WHERE
-          contract_address = LOWER('%s')
-        LIMIT 1),
+    query = """
      
-      wallet_balances AS (
+      with wallet_balances AS (
             SELECT
               raw_amount,
               block_timestamp,
@@ -25,10 +18,10 @@ def eth_erc20_token_holders(token_address, limit, offset):
             FROM
               ETHEREUM.core.fact_token_transfers
             WHERE
-              DATE(block_timestamp)  >= DATE((SELECT block_timestamp FROM genesis))
-              AND contract_address =  LOWER('%s')
+              contract_address =  LOWER('%s')
               AND to_address is not null
-     
+              AND to_address != '0x0000000000000000000000000000000000000000'
+
             UNION ALL
             SELECT
               -raw_amount,
@@ -37,10 +30,10 @@ def eth_erc20_token_holders(token_address, limit, offset):
             FROM
              ETHEREUM.core.fact_token_transfers
             WHERE
-              DATE(block_timestamp)  >= DATE((SELECT block_timestamp FROM genesis))
-              AND contract_address =  LOWER('%s')
+              contract_address =  LOWER('%s')
               AND from_address is not null
-     
+              AND from_address != '0x0000000000000000000000000000000000000000'
+
       ),
      
       aggregated_wallet_balances AS (
@@ -55,6 +48,6 @@ def eth_erc20_token_holders(token_address, limit, offset):
       order by balance desc
       limit %s
       offset %s
-    """%(token_address, token_address, token_address, limit, offset)
+    """%(token_address, token_address, limit, offset)
     query_result_set = sdk.query(query)
     return query_result_set.records

@@ -11,16 +11,16 @@ from .ethereum.erc20 import eth_erc20_token_holders
 
 TOKEN_HOLDERS_BP = Blueprint("holders", url_prefix='/holders/', version=1)
 
-def make_query_string(request_args: dict) -> str:
+def make_query_string(request_args: dict, args_list: list) -> str:
     query_string = ""
     for (key, value) in request_args.items():
-        if type(value) == list:
-            value = value[0]
-        query_string += f"&{key}={value}"
-    return query_string[1:] # to remove the first $ sign appened to the string
+        if key in args_list:
+            if type(value) == list:
+                value = value[0]
+            query_string += f"&{key}={value}"
+    return query_string[1:] 
 
 @TOKEN_HOLDERS_BP.get('<chain>/tokens')
-@is_subscribed()
 async def token_holders(request, chain):
     if chain not in request.app.config.SUPPORTED_CHAINS:
         raise CustomError("chain not suported")
@@ -40,19 +40,15 @@ async def token_holders(request, chain):
     if not request.args.get("offset"):
         request.args["offset"] = [0]
 
-    query_string: str = make_query_string(request.args)
-    caching_key = f"{request.route.path}?{query_string}"
+    request.args["chain"] = chain
+    query_string: str = make_query_string(request.args, ["chain", "contract_address", "limit", "skip"])
+
+    caching_key = f"{query_string}"
     logger.info(f"Here is the caching key {caching_key}")
     data = await token_holders_caching(request.app, caching_key, request.args)
 
-    result = []
-    for row in data:
-        result.append({
-                "balance": row['balance'],
-                "address": row['address'],
-        })
-    logger.success(f"Length of the result returned is {len(result)}")
-    return Response.success_response(data=result)
+    logger.success(f"Length of the result returned is {len(data)}")
+    return Response.success_response(data=data)
 
 async def token_holders_caching(app: object, caching_key: str, request_args: dict) -> any: 
     cache_valid = await cache_validity(app.config.REDIS_CLIENT, caching_key, 
