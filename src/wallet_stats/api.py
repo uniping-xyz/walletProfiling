@@ -95,13 +95,13 @@ async def txs(request, chain):
     if not request.args.get('wallet_address'):
         raise CustomError("Wallet address is required")
 
-    if chain in request.app.config["SUPPORTED_CHAINS"]:
+    if not chain in request.app.config["SUPPORTED_CHAINS"]:
         raise CustomError("chain is required")
     request.args["chain"] = chain
 
 
     query_string: str = make_query_string(request.args, ["chain", "wallet_address"])
-    caching_key = f"{request.route.path}?{query_string}"
+    caching_key = f"{query_string}"
 
     data = await erc20_transfers_caching(request.app, caching_key, caching_ttl, request.args)
          
@@ -211,3 +211,8 @@ async def nft_balances(request, chain):
     data = await nft_balance_caching(request.app, caching_key, caching_ttl, request.args)
        
     return Response.success_response(data=data, caching_ttl=caching_ttl, days=0)
+
+@USER_TOKEN_BALANCE_BP.get('<chain>/test')
+async def test(request, chain):
+    print (request.route.path)
+    print (dir(request.route))

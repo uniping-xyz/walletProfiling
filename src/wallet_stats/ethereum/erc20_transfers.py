@@ -5,7 +5,7 @@ import os
 
 sdk = ShroomDK(os.getenv("SHROOM_API_KEY"))
 
-def eth_wallet_erc20_transfers(wallet_address, days):
+async def eth_wallet_erc20_transfers(wallet_address, days):
     query  = """
         select contract_address, symbol, raw_amount, amount_usd, _inserted_timestamp
         from ETHEREUM.core.ez_token_transfers
@@ -15,4 +15,4 @@ def eth_wallet_erc20_transfers(wallet_address, days):
         order by _inserted_timestamp desc
     """%(days, wallet_address, wallet_address)
     query_result_set = sdk.query(query)
-    return query.records
+    return query_result_set.records
