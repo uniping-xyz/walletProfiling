@@ -3,21 +3,18 @@ import json
 from sanic import Blueprint
 from utils.utils import Response
 from utils.errors import CustomError
-from utils.authorization import is_subscribed
 from loguru import logger
-from find_addresses.external_calls.s3.erc20.eth_active_wallets import erc20_active_wallets
-from find_addresses.external_calls.s3.erc721.eth_active_wallets import erc721_active_wallets
-from find_addresses.external_calls.s3.erc1155.eth_active_wallets import erc1155_active_wallets
+from .ethereum.eth_erc20 import eth_erc20_top_wallets
+from .ethereum.eth_erc721 import eth_erc721_top_wallets
+from .ethereum.eth_erc1155 import eth_erc1155_top_wallets
 
-
-from find_addresses.external_calls import luabase_contract_search
 
 ACTIVE_WALLETS_BP = Blueprint("wallets", url_prefix='/wallets', version=1)
 
-@ACTIVE_WALLETS_BP.get('most_active')
+@ACTIVE_WALLETS_BP.get('<chain>/most_active')
 # @is_subscribed()
-async def most_active(request):
-    if request.args.get("chain") not in request.app.config.SUPPORTED_CHAINS:
+async def most_active(request, chain):
+    if chain not in request.app.config.SUPPORTED_CHAINS:
         raise CustomError("chain not suported")
 
     if not request.args.get("erc_type"):
@@ -27,20 +24,24 @@ async def most_active(request):
         raise CustomError("ERC Type is not valid")
 
     if not request.args.get("number_of_days"):
-        number_of_days = 3
+        number_of_days = 7
     else: 
         number_of_days = int(request.args.get("number_of_days"))
 
     if not request.args.get("limit"):
         request.args["limit"] = [1000]
     
+    if not request.args.get("skip"):
+        request.args["limit"] = [0]
+    
+
     try:
         if request.args.get("erc_type") == "ERC20":
-            result = await erc20_active_wallets(number_of_days, request.args.get("limit"))
+            result = await eth_erc20_top_wallets(number_of_days, request.args.get("limit"))
         elif request.args.get("erc_type") == "ERC721":
-            result = await erc721_active_wallets(number_of_days, request.args.get("limit"))
+            result = await eth_erc721_top_wallets(number_of_days, request.args.get("limit"))
         else:
-            result = await erc1155_active_wallets(number_of_days, request.args.get("limit"))
+            result = await eth_erc1155_top_wallets(number_of_days, request.args.get("limit"))
     except Exception as e:
         raise CustomError(e.__str__())
 

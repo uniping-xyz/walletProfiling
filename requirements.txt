@@ -49,6 +49,7 @@ pybase62==0.5.0
 pybranca==0.5.0
 pycoingecko==3.1.0
 pycryptodome==3.16.0
+pydantic==1.9.1
 pymongo==4.3.3
 pyparsing==3.0.9
 python-dateutil==2.8.2
@@ -63,11 +64,13 @@ sanic==21.6.0
 Sanic-Cors==1.0.0
 sanic-plugin-toolkit==1.2.1
 sanic-routing==0.7.0
+shroomdk==1.0.2
 six==1.16.0
 soupsieve==2.3.2.post1
 toolz==0.12.0
+typing_extensions==4.4.0
 ujson==5.5.0
-urllib3==1.26.13
+urllib3==1.26.11
 uvloop==0.17.0
 webencodings==0.5.1
 websockets==10.4

@@ -8,13 +8,11 @@ from utils.utils import Response
 from utils.errors import CustomError
 from utils.authorization import is_subscribed
 from loguru import logger
-from find_addresses.external_calls import luabase_trending
 from caching.cache_utils import cache_validity, get_cache, set_cache, delete_cache
-from find_addresses.db_calls.erc20.ethereum import search_contract_address as erc20_eth_search
-from find_addresses.db_calls.erc721.ethereum import search_contract_address as erc721_eth_search
-from find_addresses.db_calls.erc1155.ethereum import search_contract_address as erc1155_eth_search
-from populate_data.populate_coingecko import check_coingecko_tokens_staleness
-from populate_data.populate_blockdaemon import check_blockDaemon_tokens_staleness
+from .ethereum.eth_erc20 import eth_erc20_top_tokens
+from .ethereum.eth_erc721 import eth_erc721_top_tokens
+from .ethereum.eth_erc1155 import eth_erc1155_top_tokens
+
 
 MOST_POPULAR_BP = Blueprint("most_popular", url_prefix='/most_popular/tokens', version=1)
 
@@ -29,45 +27,29 @@ def make_query_string(request_args: dict) -> str:
 
 async def fetch_data(app: object, request_args: RequestParameters, caching_key: str) -> any:
     if request_args.get("erc_type") ==  "ERC20":
-        results = await luabase_trending.topERC20(  
-                        request_args.get("chain"), request_args.get("limit"), 
-                        request_args.get("offset"), request_args.get("number_of_days"))
-        for e in results:
-            if not e["name"]:
-                res = await erc20_eth_search(app, e["contract_address"])
-                if res:
-                    e.update({"name": res.get("name")})
-        logger.success("Update most popular erc20 tokens")
-
+        results = await  eth_erc20_top_tokens(  
+                        request_args.get("number_of_days"), 
+                        request_args.get("offset"), 
+                        request_args.get("limit"))
+     
     elif request_args.get("erc_type") ==  "ERC721":
-        results = await luabase_trending.topERC721(  
-                        request_args.get("chain"), request_args.get("limit"), 
-                        request_args.get("offset"), request_args.get("number_of_days")) 
-        for e in results:
-            if not e["name"]:
-                logger.info(f"OLD {e}")
-                res = await erc721_eth_search(app, e["contract_address"])
-                if res:
-                    e.update({"name": res.get("name")})
-        logger.success("Update most popular erc721 tokens")
+       results = await  eth_erc721_top_tokens(  
+                        request_args.get("number_of_days"), 
+                        request_args.get("offset"), 
+                        request_args.get("limit"))
     else:
-        results = await luabase_trending.topERC1155(  
-                        request_args.get("chain"), request_args.get("limit"), 
-                        request_args.get("offset"), request_args.get("number_of_days"))
-        for e in results:
-            if not e["name"]:
-                res = await erc1155_eth_search(app, e["contract_address"])
-                if res:
-                    e.update({"name": res.get("name")})
+        results = await  eth_erc1155_top_tokens(  
+                        request_args.get("number_of_days"), 
+                        request_args.get("offset"), 
+                        request_args.get("limit"))
     
-        logger.success("Update most popular erc1155 tokens")
     await set_cache(app.config.REDIS_CLIENT, caching_key, results)
     return results
 
 
 async def most_popular_token_caching(request: object, caching_key: str, request_args: dict, caching_ttl: int) -> any:
-    await check_coingecko_tokens_staleness(request.app)
-    await check_blockDaemon_tokens_staleness(request.app)
+    # await check_coingecko_tokens_staleness(request.app)
+    # await check_blockDaemon_tokens_staleness(request.app)
     result= await get_cache(request.app.config.REDIS_CLIENT, caching_key)
     logger.info("result in cache")
     logger.info(result)
@@ -83,12 +65,12 @@ async def most_popular_token_caching(request: object, caching_key: str, request_
     data = await fetch_data(request.app, request_args, caching_key)
     return data
 
-@MOST_POPULAR_BP.get('most_popular')
+@MOST_POPULAR_BP.get('<chain>/most_popular')
 # @is_subscribed()
-async def most_popular(request):
+async def most_popular(request, chain):
     CACHE_EXPIRY = request.app.config.CACHING_TTL['LEVEL_FOUR']
 
-    if request.args.get("chain") not in request.app.config.SUPPORTED_CHAINS:
+    if chain not in request.app.config.SUPPORTED_CHAINS:
         raise CustomError("chain not suported")
 
     if not request.args.get("erc_type"):
@@ -99,7 +81,7 @@ async def most_popular(request):
 
 
     if not request.args.get("number_of_days"):
-        request.args["number_of_days"] = [3]
+        request.args["number_of_days"] = [7]
     
     if not request.args.get("limit"):
         request.args["limit"] = [20]
@@ -112,13 +94,5 @@ async def most_popular(request):
     caching_key = f"{request.route.path}?{query_string}"
     logger.info(f"Here is the caching key {caching_key}")
     data = await most_popular_token_caching(request, caching_key, request.args, CACHE_EXPIRY)
-    result = []
-    for row in data:
-        result.append({
-                "total_transactions": row['total_transactions'],
-                "contract_address": row['contract_address'],
-                "name": row['name'],
-                "symbol": row['symbol']
-        })
-    logger.info(data)
-    return Response.success_response(data=result, caching_ttl=CACHE_EXPIRY)
+    
+    return Response.success_response(data=data, caching_ttl=CACHE_EXPIRY)

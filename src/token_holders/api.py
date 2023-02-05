@@ -6,10 +6,10 @@ from utils.errors import CustomError
 from sanic.request import RequestParameters
 from utils.authorization import is_subscribed
 from caching.cache_utils import cache_validity, get_cache, set_cache, delete_cache
-from find_addresses.external_calls import luabase_token_holders
+from .ethereum.erc721_1155 import eth_erc721_1155_token_holders
+from .ethereum.erc20 import eth_erc20_token_holders
+
 TOKEN_HOLDERS_BP = Blueprint("holders", url_prefix='/holders/', version=1)
-
-
 
 def make_query_string(request_args: dict) -> str:
     query_string = ""
@@ -19,10 +19,10 @@ def make_query_string(request_args: dict) -> str:
         query_string += f"&{key}={value}"
     return query_string[1:] # to remove the first $ sign appened to the string
 
-@TOKEN_HOLDERS_BP.get('tokens')
+@TOKEN_HOLDERS_BP.get('<chain>/tokens')
 @is_subscribed()
-async def token_holders(request):
-    if request.args.get("chain") not in request.app.config.SUPPORTED_CHAINS:
+async def token_holders(request, chain):
+    if chain not in request.app.config.SUPPORTED_CHAINS:
         raise CustomError("chain not suported")
 
     if not request.args.get("erc_type"):
@@ -41,12 +41,10 @@ async def token_holders(request):
         request.args["offset"] = [0]
 
     query_string: str = make_query_string(request.args)
-    if request.app.config.CACHING:
-        caching_key = f"{request.route.path}?{query_string}"
-        logger.info(f"Here is the caching key {caching_key}")
-        data = await token_holders_caching(request.app, caching_key, request.args)
-    else:
-        data = await fetch_data(request.app, request.args)
+    caching_key = f"{request.route.path}?{query_string}"
+    logger.info(f"Here is the caching key {caching_key}")
+    data = await token_holders_caching(request.app, caching_key, request.args)
+
     result = []
     for row in data:
         result.append({
@@ -70,16 +68,12 @@ async def token_holders_caching(app: object, caching_key: str, request_args: dic
 async def fetch_data(app: object, request_args: RequestParameters) -> any:
 
     if request_args.get("erc_type") ==  "ERC20":
-        results = await luabase_token_holders.holders_ERC20(  
+        results = await eth_erc20_token_holders(  
                     request_args.get("contract_address"),  request_args.get("limit"),  
                     request_args.get("offset"))
-
-    elif request_args.get("erc_type") ==  "ERC721":
-        results = await luabase_token_holders.holders_ERC721(
-                    request_args.get("contract_address"),  request_args.get("limit"),  
-                    request_args.get("offset"))    
+  
     else:
-        results = await luabase_token_holders.holders_ERC1155(
+        results = await eth_erc721_1155_token_holders(
                     request_args.get("contract_address"),  request_args.get("limit"),  
                     request_args.get("offset"))
     return results

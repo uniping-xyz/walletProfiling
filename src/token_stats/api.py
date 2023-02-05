@@ -1,15 +1,11 @@
-import requests
 import json
-import asyncio
-import aiohttp
+
 from sanic import Blueprint
 from utils.utils import Response
 from utils.errors import CustomError
-from utils.authorization import is_subscribed
 from loguru import logger
 from sanic.request import RequestParameters
-from find_addresses.external_calls import blockdaemon_calls
-from find_addresses.external_calls import luabase_floor_price
+from .ethereum.eth_erc721_1155_stats import get_nft_metadata, get_nft_sales_on_platforms
 from find_addresses.external_calls import bq_token_stats
 from caching.cache_utils import cache_validity, get_cache, set_cache, delete_cache
 
@@ -28,16 +24,15 @@ def make_query_string(request_args: dict, args_list: list) -> str:
             query_string += f"&{key}={value}"
     return query_string[1:] # to remove the first $ sign appened to the string
 
-@TOKEN_STATS_BP.get('stats')
-@is_subscribed()
-async def stats(request):
+@TOKEN_STATS_BP.get('<chain>/stats')
+async def stats(request, chain):
 
     if not request.args.get("token_address") :
         raise CustomError("token_address is required ")
 
-    if not request.args.get("chain") or  request.args.get("chain") not in ["ethereum", "polygon"]:
+    if not chain or  request.args.get("chain") not in ["ethereum", "polygon"]:
         raise CustomError("Chain is required and should be either ethereum or polygon")
-    
+    request.args["chain"] = chain
     token_address = request.args.get("token_address")
     
     
@@ -66,13 +61,11 @@ async def token_stats_caching(app: object, caching_key: str, request_args: dict)
     return json.loads(result)
 
 
-
 @TOKEN_STATS_BP.get('metadata')
-@is_subscribed()
 async def token_metadata(request):
     if not request.args.get("token_address") :
         raise CustomError("token_address is required ")
-    response = await blockdaemon_calls.get_nft_collection_details(request.args.get("token_address"))
+    response = await get_nft_metadata(request.args.get("token_address"))
     
     return Response.success_response(data=response)
 
@@ -83,7 +76,7 @@ async def floor_price_caching(app: object, caching_key: str, caching_ttl:int, re
     cache_valid = await cache_validity(app.config.REDIS_CLIENT, caching_key, caching_ttl)
 
     if not cache_valid:
-        data = await luabase_floor_price.floor_price_per_day(request_args.get("token_address"), NUMBER_OF_DAYS)
+        data = await get_nft_sales_on_platforms(request_args.get("token_address"), 60)
         if data: #only set cache when data is not empty
             await set_cache(app.config.REDIS_CLIENT, caching_key, data)
         return data
@@ -91,14 +84,14 @@ async def floor_price_caching(app: object, caching_key: str, caching_ttl:int, re
     return json.loads(result)
 
 
-@TOKEN_STATS_BP.get('floor_price')
-@is_subscribed()
-async def floor_price(request):
-    caching_ttl =  request.app.config.CACHING_TTL['LEVEL_FIVE']
+@TOKEN_STATS_BP.get('<chain>/nft_sales')
+async def floor_price(request, chain):
+    caching_ttl =  request.app.config.CACHING_TTL['LEVEL_THREE']
+    request.args["chain"] = chain
     query_string: str = make_query_string(request.args, ["chain", "token_address"])
     caching_key = f"{request.route.path}?{query_string}"
     
     if not request.args.get("token_address") :
         raise CustomError("token_address is required ")
     response = await floor_price_caching(request.app, caching_key, caching_ttl, request.args)
-    return Response.success_response(data=response, days=NUMBER_OF_DAYS, caching_ttl=caching_ttl)
+    return Response.success_response(data=response, days=60, caching_ttl=caching_ttl)

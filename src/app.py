@@ -11,16 +11,14 @@ from branca import Branca
 import boto3
 import binascii
 from find_addresses.common_address_different_tokens import CMN_ADDR_DIFF_TKNS
-from find_addresses.token_search import  TOKEN_SEARCH_BP
-from find_addresses.top_tokens import MOST_POPULAR_BP
-from find_addresses.token_holders import TOKEN_HOLDERS_BP
-from find_addresses.token_transfers import TOKEN_TRANSFERS_BP
-from find_addresses.contract_tags import TOKEN_TAGS_BP
-from find_addresses.token_stats import TOKEN_STATS_BP
-from find_addresses.wallet_stats import USER_TOKEN_BALANCE_BP
+from token_search.api import  TOKEN_SEARCH_BP
+from top_tokens.api import MOST_POPULAR_BP
+from token_holders.api import TOKEN_HOLDERS_BP
+from token_stats.api import TOKEN_STATS_BP
+from wallet_stats.api import USER_TOKEN_BALANCE_BP
 from find_addresses.admin import ADMIN_BP
-from find_addresses.most_active_wallets import ACTIVE_WALLETS_BP
-from find_addresses.contract_creators import CREATOR_WALLETS_BP
+from most_active_wallets.api import ACTIVE_WALLETS_BP
+# from find_addresses.contract_creators import CREATOR_WALLETS_BP
 from categories.categories import CATEGORIES_BP
 
 
@@ -53,34 +51,6 @@ async def load_config():  # pylint: disable=too-many-branches
         print(e)
         raise Exception("Config object couldnt be loaded because of some error")
     return 
- 
-
-
-
-
-# async def load_db_secrets(env_path):
-#     db_dotenv_path = os.path.join(os.path.dirname(__file__), env_path)
-#     config = dotenv_values(db_dotenv_path)
-#     user = config.get("MONGO_INITDB_USERNAME")
-#     password = config.get("MONGO_INITDB_PASSWORD")
-#     ip = config.get("MONGO_IP")
-#     port = config.get("MONGO_PORT")
-#     db_name = config.get("MONGO_INITDB_DATABASE")
-#     uri = f'mongodb://{user}:{password}@{ip}:{port}/{db_name}'
-#     logger.info(f"Mongo URI is {uri}")
-#     connection = AsyncIOMotorClient(uri)
-
-#     db = connection[db_name]
-#     app.config.TOKENS = db["tokens"]
-#     app.config.QUERIES = db["queries"]
-#     logger.success(f"Total tokens in DB  {await app.config.TOKENS.count_documents({})}")
-
-#     await create_index_tokens( app.config.TOKENS)
-
-#     logger.success(f"Mongodb connection established {db}")
-#     return
-
-
 
 async def load_db_secrets():
 
@@ -183,13 +153,10 @@ if __name__ == '__main__':
                             TOKEN_SEARCH_BP,
                             MOST_POPULAR_BP,
                             TOKEN_HOLDERS_BP,
-                            TOKEN_TRANSFERS_BP,
-                            TOKEN_TAGS_BP,
                             TOKEN_STATS_BP,
                             USER_TOKEN_BALANCE_BP,
                             ERRORS_BP,
                             ACTIVE_WALLETS_BP,
-                            CREATOR_WALLETS_BP,
                             url_prefix='/api')
     if ENVIRONMENT == "devnet":
         APP_BP = Blueprint.group(APP_BP, ADMIN_BP)
