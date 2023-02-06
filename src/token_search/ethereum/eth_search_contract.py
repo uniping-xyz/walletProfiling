@@ -17,13 +17,15 @@ async def eth_contract_details(contract_address):
     return query_result_set.records
 
 async def eth_contract_on_text(text):
+    query = f"{text}%"
     search_contract = f"""
         SELECT *
              FROM
                  ETHEREUM.core.dim_contracts_extended
              WHERE
-                 name like '%s%'
-        """%(text)
+                 name like '%s'
+              limit 10
+        """%(query)
 
     query_result_set = sdk.query(search_contract)
     return query_result_set.records

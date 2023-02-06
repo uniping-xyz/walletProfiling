@@ -12,10 +12,16 @@ from eth_utils import to_checksum_address
 from sanic.request import RequestParameters
 
 from caching.cache_utils import cache_validity, get_cache, set_cache
-from populate_data.populate_blockdaemon import  check_blockDaemon_tokens_staleness, \
-            populate_erc721_blockdaemon, populate_erc1155_blockdaemon
+from populate_data.populate_blockdaemon import  check_blockDaemon_tokens_staleness
+from populate_data.populate_coingecko import check_coingecko_tokens_staleness
 
 from .ethereum.eth_search_contract import  eth_contract_details, eth_contract_on_text
+
+from find_addresses.db_calls.erc20.ethereum import search_text as erc20_eth_textsearch
+from find_addresses.db_calls.erc721.ethereum import search_text as erc721_eth_textsearch
+from find_addresses.db_calls.erc1155.ethereum import search_text as erc1155_eth_textsearch
+
+
 
 TOKEN_SEARCH_BP = Blueprint("search", url_prefix='/search/tokens', version=1)
 
@@ -54,27 +60,44 @@ async def contract_text_caching(app: object, caching_key: str, request_args: dic
                             app.config.CACHING_TTL['LEVEL_SEVEN'])
 
     if not cache_valid:
-        data = await eth_contract_on_text(request_args.get("text"))
+        data = await search_contract_on_text(app, request_args)
         await set_cache(app.config.REDIS_CLIENT, caching_key, data)
         return data
     result= await get_cache(app.config.REDIS_CLIENT, caching_key)
     return json.loads(result)
 
+
+async def search_contract_on_text(app, request_args):
+    async with aiohttp.ClientSession() as session:
+        result = await asyncio.gather(*[
+                erc20_eth_textsearch(app, request_args.get("text"), 10),
+                erc721_eth_textsearch(app, request_args.get("text")), 
+                erc1155_eth_textsearch(app,request_args.get("text"))],                
+                return_exceptions=True)
+
+        if not result:
+            result  = await eth_contract_on_text(request_args.get("text"))
+    return result
+
 @TOKEN_SEARCH_BP.get('<chain>/text')
 #@authorized
 async def search_text(request, chain):
+    await check_coingecko_tokens_staleness(request.app)
+    await check_blockDaemon_tokens_staleness(request.app) 
     if chain not in request.app.config.SUPPORTED_CHAINS:
         raise CustomError("chain not suported")
+
     request.args["chain"] = chain
     if  not request.args.get("text"):
         raise CustomError("text is required")
 
+
     query_string: str = make_query_string(request.args, ["text"])
-    caching_key = f"{request.route.path}?{query_string}"
+    caching_key = f"{request.route.path.replace('<chain:str>', chain)}?{query_string}"
 
-    erc_standard = await contract_text_caching(request.app, caching_key, request.args)
 
-    result = eth_contract_on_text(request.args.get("text"))
+    result = await contract_text_caching(request.app, caching_key, request.args)
+
     return Response.success_response(data=result)
 
 
@@ -89,7 +112,8 @@ async def get_contract_type(request, chain):
         raise CustomError("contract_address is required")
 
     query_string: str = make_query_string(request.args, ["contract_address"])
-    caching_key = f"erc_standard?{query_string}"
+    caching_key = f"ethereum/erc_standard?{query_string}"
+
     logger.info(f"Here is the caching key {caching_key}")
     erc_standard = await contract_standard_type_caching(request.app, caching_key, request.args)
     return Response.success_response(data=erc_standard)
