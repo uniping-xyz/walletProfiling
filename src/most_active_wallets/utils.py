@@ -15,7 +15,7 @@ async def run_graphql_query(url, query):
                         json={'query': query},
                         headers = headers ) as response:
             if response.status == 200:
-                result = await response.json()
+                result = await response.json(content_type=None)
                 if result.get('errors'):
                     logger.error('Error running graphql query')
                     logger.error(result['errors'])

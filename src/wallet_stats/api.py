@@ -212,8 +212,3 @@ async def nft_balances(request, chain):
     data = await nft_balance_caching(request.app, caching_key, caching_ttl, request.args)
        
     return Response.success_response(data=data, caching_ttl=caching_ttl, days=0)
-
-@USER_TOKEN_BALANCE_BP.get('<chain>/test')
-async def test(request, chain):
-    print (request.route.path)
-    print (dir(request.route))

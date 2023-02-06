@@ -46,13 +46,13 @@ async def eth_erc721_15day(skip, limit):
     return await run_graphql_query(url, query)
 
 async def eth_erc721_top_wallets(days, skip, limit):
-    if days == 1:
-        return await eth_erc721_1day(days, skip, limit)
+    if int(days) == 1:
+        return await eth_erc721_1day(skip, limit)
 
-    elif days == 7:
-        return await eth_erc721_7day(days, skip, limit)
+    elif int(days) == 7:
+        return await eth_erc721_7day(skip, limit)
 
-    elif days == 15:
-        return await eth_erc721_15day(days, skip, limit)
+    elif int(days) == 15:
+        return await eth_erc721_15day(skip, limit)
     else:
         raise CustomError("days not supported yet")
