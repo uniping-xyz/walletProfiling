@@ -28,6 +28,7 @@ from .ethereum.nft_transfers import eth_wallet_nft_transfers
 from .ethereum.erc20_transfers import eth_wallet_erc20_transfers
 from .ethereum.erc20_balance import eth_erc20_balance
 from .ethereum.nft_balances import eth_nft_balance
+from .ethereum.label import eth_wallet_label
 
 from .ethereum.txs_per_day import eth_wallet_tx_per_day
 
@@ -213,3 +214,32 @@ async def nft_balances(request, chain):
     data = await nft_balance_caching(request.app, caching_key, caching_ttl, request.args)
        
     return Response.success_response(data=data, caching_ttl=caching_ttl, days=0)
+
+
+async def label_caching(app: object, caching_key: str, caching_ttl:int, request_args: dict) -> any: 
+    cache_valid = await cache_validity(app.config.REDIS_CLIENT, caching_key, caching_ttl)
+
+    if not cache_valid:
+        data = await eth_wallet_label(request_args.get("wallet_address"))
+        if data: #only set cache when data is not empty
+            await set_cache(app.config.REDIS_CLIENT, caching_key, data)
+        return data
+    result = await get_cache(app.config.REDIS_CLIENT, caching_key)
+    return json.loads(result)
+
+
+
+@USER_TOKEN_BALANCE_BP.get('<chain>/label')
+async def nft_balances(request, chain):
+    caching_ttl =  request.app.config.CACHING_TTL['LEVEL_EIGHT']
+
+    if not chain in request.app.config["SUPPORTED_CHAINS"]:
+        raise CustomError("chain is required")
+    wallet_address = request.args.get('wallet_address')
+
+    query_string: str = make_query_string(request.args, ["wallet_address", "next_page_token"])
+    caching_key = f"{request.route.path.replace('<chain:str>', chain)}?{query_string}"
+    data = await label_caching(request.app, caching_key, caching_ttl, request.args)
+
+    return Response.success_response(data=data, caching_ttl=caching_ttl, days=0)
+
