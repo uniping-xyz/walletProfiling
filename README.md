@@ -20,3 +20,26 @@ r = requests.get("http://localhost:8006/v1/api/holders/ethereum/tokens",
         "contract_address": "0xffc6dbff68a8e92a7984e474f7b7a9856945e0fb", 
         "limit": 20})
 ```
+
+
+## Wallet 
+
+
+#### NFT transfers 
+```
+r = requests.get("http://localhost:8006/v1/api/wallet/ethereum/nft_transfers", 
+      params={"wallet_address": "0x9c4C630fab38192bbcC53464A156a59337D75a24"})
+```
+#### Tx/day
+```
+r = requests.get("http://localhost:8006/v1/api/wallet/ethereum/txs_per_day", 
+    params={"wallet_address": "0x9c4C630fab38192bbcC53464A156a59337D75a24"})
+```
+
+#### ERC20 transfers
+
+```
+r = requests.get("http://localhost:8006/v1/api/wallet/ethereum/erc20_transfers", 
+      params={"wallet_address": "0x9c4C630fab38192bbcC53464A156a59337D75a24"})
+
+```

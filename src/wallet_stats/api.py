@@ -56,20 +56,20 @@ async def nft_transfers_caching(app: object, caching_key: str, caching_ttl:int, 
     return json.loads(result)
 
 @USER_TOKEN_BALANCE_BP.get('<chain>/nft_transfers')
-async def txs(request, chain):
+async def nft_transfers(request, chain):
 
     caching_ttl =  request.app.config.CACHING_TTL['LEVEL_THREE']
 
     if not request.args.get('wallet_address'):
         raise CustomError("Wallet address is required")
 
-    if chain in request.app.config["SUPPORTED_CHAINS"]:
+    if chain not in request.app.config["SUPPORTED_CHAINS"]:
         raise CustomError("chain is required")
     request.args["chain"] = chain
 
 
-    query_string: str = make_query_string(request.args, ["chain", "wallet_address"])
-    caching_key = f"{request.route.path}?{query_string}"
+    query_string: str = make_query_string(request.args, ["wallet_address"])
+    caching_key = f"{request.route.path.replace('<chain:str>', chain)}?{query_string}"
 
     data = await nft_transfers_caching(request.app, caching_key, caching_ttl, request.args)
          
@@ -88,7 +88,7 @@ async def erc20_transfers_caching(app: object, caching_key: str, caching_ttl:int
     return json.loads(result)
 
 @USER_TOKEN_BALANCE_BP.get('<chain>/erc20_transfers')
-async def txs(request, chain):
+async def erc20_transfers(request, chain):
 
     caching_ttl =  request.app.config.CACHING_TTL['LEVEL_THREE']
 
@@ -100,8 +100,8 @@ async def txs(request, chain):
     request.args["chain"] = chain
 
 
-    query_string: str = make_query_string(request.args, ["chain", "wallet_address"])
-    caching_key = f"{query_string}"
+    query_string: str = make_query_string(request.args, ["wallet_address"])
+    caching_key = f"{request.route.path.replace('<chain:str>', chain)}?{query_string}"
 
     data = await erc20_transfers_caching(request.app, caching_key, caching_ttl, request.args)
          
@@ -132,8 +132,10 @@ async def txs_per_day(request, chain):
 
     wallet_address = request.args.get('wallet_address')
     chain = request.args.get('chain')
-    query_string: str = make_query_string(request.args, ["chain", "wallet_address"])
-    caching_key = f"{request.route.path}?{query_string}"
+
+    query_string: str = make_query_string(request.args, ["wallet_address"])
+    caching_key = f"{request.route.path.replace('<chain:str>', chain)}?{query_string}"
+
     logger.info(f"Here is the caching key for Txs/Day  by wallet adress {caching_key}")
 
     data = await txs_per_day_caching(request.app, caching_key, caching_ttl, request.args)
@@ -155,7 +157,6 @@ async def erc20_balance_caching(app: object, caching_key: str, caching_ttl: int,
 
 
 @USER_TOKEN_BALANCE_BP.get('<chain>/erc20_balances')
-@is_subscribed()
 async def erc20_balances(request, chain):
     caching_ttl =  request.app.config.CACHING_TTL['LEVEL_THREE']
 
@@ -167,10 +168,9 @@ async def erc20_balances(request, chain):
     if not chain:
         raise CustomError("chain is required")
     request.args["chain"] = chain
+    query_string: str = make_query_string(request.args, ["wallet_address"])
+    caching_key = f"{request.route.path.replace('<chain:str>', chain)}?{query_string}"
 
-    query_string: str = make_query_string(request.args, ["chain", "erc20", "wallet_address"])
-
-    caching_key = f"{request.route.path}?{query_string}"
     logger.info(f"Here is the caching key {caching_key}")
     data = await erc20_balance_caching(request.app, caching_key, caching_ttl, request.args)
        
@@ -204,9 +204,10 @@ async def nft_balances(request, chain):
         raise CustomError("Wallet address is required")
     
     
-    query_string: str = make_query_string(request.args, ["chain", "wallet_address", "next_page_token"])
+    query_string: str = make_query_string(request.args, ["wallet_address", "next_page_token"])
 
-    caching_key = f"{request.route.path}?{query_string}"
+    caching_key = f"{request.route.path.replace('<chain:str>', chain)}?{query_string}"
+    
     logger.info(f"Here is the caching key {caching_key}")
     data = await nft_balance_caching(request.app, caching_key, caching_ttl, request.args)
        
