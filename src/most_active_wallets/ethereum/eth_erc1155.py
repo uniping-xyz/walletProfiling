@@ -4,7 +4,8 @@ from utils.errors import CustomError
 
 
 async def eth_erc1155_1day( skip, limit):
-    url = "https://api.zettablock.com/api/v1/dataset/sq_810f2eaee267486aa0a90eea4d728e99/graphql"
+    url = "https://api.zettablock.com/api/v1/dataset/sq_dccc4e02dfd344cfad888466bf892f06/graphql"
+    oldurl = "https://api.zettablock.com/api/v1/dataset/sq_810f2eaee267486aa0a90eea4d728e99/graphql"
     query = """{
         records(limit:%s, skip: %s 
     	orderBy: total_transactions, orderDirection: desc
@@ -17,7 +18,8 @@ async def eth_erc1155_1day( skip, limit):
     return await run_graphql_query(url, query)
 
 async def eth_erc1155_7day(skip, limit):
-    url ="https://api.zettablock.com/api/v1/dataset/sq_ea76f6340f0841c9ac4e3bea7ab3f71a/graphql"
+    url="https://api.zettablock.com/api/v1/dataset/sq_099afff349cc4bc49cb3dec5929aeafd/graphql"
+    oldurl ="https://api.zettablock.com/api/v1/dataset/sq_ea76f6340f0841c9ac4e3bea7ab3f71a/graphql"
     query = """{
         records(limit:%s, skip: %s 
     	orderBy: total_transactions, orderDirection: desc
@@ -33,7 +35,8 @@ async def eth_erc1155_7day(skip, limit):
 
 
 async def eth_erc1155_15day(skip, limit):
-    url = "https://api.zettablock.com/api/v1/dataset/sq_e757a15e0a374bd5ab88332a05801cfa/graphql"
+    url="https://api.zettablock.com/api/v1/dataset/sq_9193f146ca25440e8ba931e3e815ecef/graphql"
+    oldurl = "https://api.zettablock.com/api/v1/dataset/sq_e757a15e0a374bd5ab88332a05801cfa/graphql"
     query = """{
         records(limit:%s, skip: %s 
     	orderBy: total_transactions, orderDirection: desc
