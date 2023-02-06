@@ -111,6 +111,9 @@ async def search_text(request, chain):
 @TOKEN_SEARCH_BP.get('<chain>/contract_type')
 # @is_subscribed()
 async def get_contract_type(request, chain):
+    await check_coingecko_tokens_staleness(request.app)
+    await check_blockDaemon_tokens_staleness(request.app) 
+
     if  chain not in request.app.config.SUPPORTED_CHAINS:
         raise CustomError("chain not suported")
 
@@ -137,7 +140,7 @@ async def get_contract_type(request, chain):
         erc_standard =  await erc1155_eth_contractsearch(request.app, request.args.get("contract_address"))
         if result:
             erc_standard = result.get("token_type")
-            
+
     if not erc_standard:
         erc_standard = await is_nft_contract(request.args.get("contract_address"))
 

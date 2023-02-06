@@ -35,7 +35,7 @@ async def token_holders(request, chain):
         raise CustomError("ERC Type is not valid")
 
     if not request.args.get("limit"):
-        request.args["limit"] = [20]
+        request.args["limit"] = [200]
 
     if not request.args.get("offset"):
         request.args["offset"] = [0]
