@@ -15,7 +15,7 @@ from caching.cache_utils import cache_validity, get_cache, set_cache
 from populate_data.populate_blockdaemon import  check_blockDaemon_tokens_staleness
 from populate_data.populate_coingecko import check_coingecko_tokens_staleness
 
-from .ethereum.eth_search_contract import  eth_contract_details, eth_contract_on_text
+from .ethereum.eth_search_contract import  eth_contract_details, eth_contract_on_text, is_erc20_contract, is_nft_contract 
 
 from find_addresses.db_calls.erc20.ethereum import search_text as erc20_eth_textsearch
 from find_addresses.db_calls.erc721.ethereum import search_text as erc721_eth_textsearch
@@ -122,12 +122,27 @@ async def get_contract_type(request, chain):
 
     logger.info(f"Here is the caching key {caching_key}")
     
-    erc_standard = await erc20_eth_contractsearch(request.app, request.args.get("contract_address"))
+    erc_standard = None
     if not erc_standard:
-        erc_standard = await erc721_eth_contractsearch(request.app, request.args.get("contract_address"))
-    
+        result = await erc20_eth_contractsearch(request.app, request.args.get("contract_address"))
+        if result:
+            erc_standard = result.get("token_type")
+
+    if not erc_standard:
+        result = await erc721_eth_contractsearch(request.app, request.args.get("contract_address"))
+        if result:
+            erc_standard = result.get("token_type")
+
     if not erc_standard: 
         erc_standard =  await erc1155_eth_contractsearch(request.app, request.args.get("contract_address"))
-    
+        if result:
+            erc_standard = result.get("token_type")
+            
+    if not erc_standard:
+        erc_standard = await is_nft_contract(request.args.get("contract_address"))
+
+    if not erc_standard:
+        erc_standard = await is_erc20_contract(request.args.get("contract_address"))
+
     # erc_standard = await contract_standard_type_caching(request.app, caching_key, request.args)
     return Response.success_response(data=erc_standard)
