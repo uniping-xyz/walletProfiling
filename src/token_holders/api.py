@@ -41,7 +41,7 @@ async def token_holders(request, chain):
         request.args["offset"] = [0]
 
     request.args["chain"] = chain
-    query_string: str = make_query_string(request.args, ["chain", "contract_address", "limit", "skip"])
+    query_string: str = make_query_string(request.args, ["erc_type", "chain", "contract_address", "limit", "skip"])
 
     caching_key = f"{query_string}"
     logger.info(f"Here is the caching key {caching_key}")

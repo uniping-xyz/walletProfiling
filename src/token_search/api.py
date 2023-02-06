@@ -22,6 +22,12 @@ from find_addresses.db_calls.erc721.ethereum import search_text as erc721_eth_te
 from find_addresses.db_calls.erc1155.ethereum import search_text as erc1155_eth_textsearch
 
 
+from find_addresses.db_calls.erc20.ethereum import search_contract_address as erc20_eth_contractsearch
+from find_addresses.db_calls.erc721.ethereum import search_contract_address as erc721_eth_contractsearch
+from find_addresses.db_calls.erc1155.ethereum import search_contract_address as erc1155_eth_contractsearch
+
+
+
 
 TOKEN_SEARCH_BP = Blueprint("search", url_prefix='/search/tokens', version=1)
 
@@ -37,7 +43,7 @@ async def contract_standard_type_caching(app: object, caching_key: str, request_
                             app.config.CACHING_TTL['LEVEL_EIGHT'])
 
     if not cache_valid:
-        data = await eth_contract_details(app, request_args)
+        data = await eth_contract_details(request_args.get("contract_address"))
         await set_cache(app.config.REDIS_CLIENT, caching_key, data)
         return data
     result= await get_cache(app.config.REDIS_CLIENT, caching_key)
@@ -115,5 +121,13 @@ async def get_contract_type(request, chain):
     caching_key = f"ethereum/erc_standard?{query_string}"
 
     logger.info(f"Here is the caching key {caching_key}")
-    erc_standard = await contract_standard_type_caching(request.app, caching_key, request.args)
+    
+    erc_standard = await erc20_eth_contractsearch(request.app, request.args.get("contract_address"))
+    if not erc_standard:
+        erc_standard = await erc721_eth_contractsearch(request.app, request.args.get("contract_address"))
+    
+    if not erc_standard: 
+        erc_standard =  await erc1155_eth_contractsearch(request.app, request.args.get("contract_address"))
+    
+    # erc_standard = await contract_standard_type_caching(request.app, caching_key, request.args)
     return Response.success_response(data=erc_standard)

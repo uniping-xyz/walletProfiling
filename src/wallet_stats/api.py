@@ -111,7 +111,8 @@ async def txs_per_day_caching(app: object, caching_key: str, caching_ttl:int, re
     cache_valid = await cache_validity(app.config.REDIS_CLIENT, caching_key, caching_ttl)
 
     if not cache_valid:
-        data = await eth_wallet_tx_per_day(request_args.get("wallet_address"), NUMBER_OF_DAYS)
+        records = await eth_wallet_tx_per_day(request_args.get("wallet_address"), NUMBER_OF_DAYS)
+        data = sorted(records, key=lambda d: d['tithi'])
         if data: #only set cache when data is not empty
             await set_cache(app.config.REDIS_CLIENT, caching_key, data)
         return data
