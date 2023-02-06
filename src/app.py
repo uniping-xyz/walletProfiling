@@ -18,6 +18,7 @@ from token_stats.api import TOKEN_STATS_BP
 from wallet_stats.api import USER_TOKEN_BALANCE_BP
 from find_addresses.admin import ADMIN_BP
 from most_active_wallets.api import ACTIVE_WALLETS_BP
+from wallet_tags.api import WALLET_TAGS_BP
 # from find_addresses.contract_creators import CREATOR_WALLETS_BP
 from categories.categories import CATEGORIES_BP
 
@@ -149,6 +150,7 @@ if __name__ == '__main__':
 
     logger.info(f"The Env is {ENVIRONMENT}")
     APP_BP = Blueprint.group(CATEGORIES_BP,
+                            WALLET_TAGS_BP,
                             CMN_ADDR_DIFF_TKNS,
                             TOKEN_SEARCH_BP,
                             MOST_POPULAR_BP,
@@ -163,4 +165,4 @@ if __name__ == '__main__':
     app.blueprint(APP_BP)
     for route in app.router.routes:
         print(f"/{route.path:30} - {route.name:40} -  {route.methods}")
-    app.run(host="0.0.0.0", port=8080, workers=4, auto_reload=True, access_log=False,  reload_dir="./config")
+    app.run(host="0.0.0.0", port=8080, workers=1, auto_reload=True, access_log=False,  reload_dir="./config")
