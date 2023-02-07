@@ -12,7 +12,7 @@ async def eth_millionaires_w_nfts():
       select
           distinct address
       from crosschain.core.address_tags
-      where tag_name = 'wallet millionaire'
+      where tag_name = 'eth millionaire'
           and creator = 'flipside'
       )
       select
