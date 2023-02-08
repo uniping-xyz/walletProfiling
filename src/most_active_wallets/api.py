@@ -7,6 +7,14 @@ from loguru import logger
 from .ethereum.eth_erc20 import eth_erc20_top_wallets
 from .ethereum.eth_erc721 import eth_erc721_top_wallets
 from .ethereum.eth_erc1155 import eth_erc1155_top_wallets
+
+
+from .polygon.polygon_erc20 import polygon_erc20_top_wallets
+from .polygon.polygon_erc721 import polygon_erc721_top_wallets
+from .polygon.polygon_erc1155 import polygon_erc1155_top_wallets
+
+
+
 from caching.cache_utils import cache_validity, get_cache, set_cache, delete_cache
 
 
@@ -44,12 +52,42 @@ async def get_active_wallets_data(request_args):
     logger.info(request_args.get("limit"))
     
     try:
-        if request_args.get("erc_type") == "ERC20":
-            result = await eth_erc20_top_wallets(request_args.get("number_of_days"), request_args.get("skip"), request_args.get("limit"))
-        elif request_args.get("erc_type") == "ERC721":
-            result = await eth_erc721_top_wallets(request_args.get("number_of_days"), request_args.get("skip"),request_args.get("limit"))
+        if request_args.get("chain") == "ethereum":
+            if request_args.get("erc_type") == "ERC20":
+                result = await eth_erc20_top_wallets(
+                            request_args.get("number_of_days"), 
+                            request_args.get("skip"), 
+                            request_args.get("limit"))
+            elif request_args.get("erc_type") == "ERC721":
+                result = await eth_erc721_top_wallets(
+                            request_args.get("number_of_days"), 
+                            request_args.get("skip"),
+                            request_args.get("limit"))
+            else:
+                result = await eth_erc1155_top_wallets(
+                            request_args.get("number_of_days"), 
+                            request_args.get("skip"), 
+                            request_args.get("limit"))
         else:
-            result = await eth_erc1155_top_wallets(request_args.get("number_of_days"), request_args.get("skip"), request_args.get("limit"))
+            if request_args.get("erc_type") == "ERC20":
+                result = await polygon_erc20_top_wallets(
+                            request_args.get("number_of_days"), 
+                            request_args.get("skip"), 
+                            request_args.get("limit"))
+            elif request_args.get("erc_type") == "ERC721":
+                result = await polygon_erc721_top_wallets(
+                            request_args.get("number_of_days"), 
+                            request_args.get("skip"),
+                            request_args.get("limit"))
+            else:
+                result = await polygon_erc1155_top_wallets(
+                            request_args.get("number_of_days"), 
+                            request_args.get("skip"), 
+                            request_args.get("limit"))
+
+
+
+
     except Exception as e:
         raise CustomError(e.__str__())
 
@@ -81,6 +119,8 @@ async def most_active(request, chain):
     
     if not request.args.get("skip"):
         request.args["skip"] = [0]
+    
+    request.args["chain"] = [chain]
     
 
     query_string: str = make_query_string(request.args, ["erc_type", "number_of_days", "limit", "skip"])

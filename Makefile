@@ -56,7 +56,7 @@ mainnet-up: build ## Generate distribution
 	@docker-compose  -f docker-compose.yml -f docker-compose.mainnet.yml up --remove-orphans --force-recreate
 
 mainnet-run: build ## Generate distribution
-	@docker-compose  -f docker-compose.yml -f docker-compose.mainnet.yml up -d
+	@docker-compose  -f docker-compose.yml -f docker-compose.mainnet.yml up
 
 mainnet-stop: build ## Generate distribution
 	@docker-compose  -f docker-compose.yml -f docker-compose.mainnet.yml stop
