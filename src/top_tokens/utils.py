@@ -9,7 +9,7 @@ async def run_graphql_query(url, query):
     headers = {
     "accept": "application/json",
     "content-type": "application/json",
-    "X-API-KEY": os.getenv("ZETTABLOCK_API_KEY_ONE")
+    "X-API-KEY": os.getenv("ZETTABLOCK_API_KEY_TWO")
     }
     async with aiohttp.ClientSession() as session:
         async with session.post(
